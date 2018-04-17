@@ -1,35 +1,32 @@
 #pragma once
 
 #include <string>
-#include "ComponentType.h"
+#include "ComponentTypes.h"
 
-struct Spot;
+struct GridSpot;
 
 class Component {
 	private:
-		const ComponentType type;
+		const ComponentType* type;
 		double voltageDrop;
 		double ampsThrough;
 
-		Spot* positive;
-		Spot* negative;
+		GridSpot* positive;
+		GridSpot* negative;
 
 	public:
 		Component() = delete;
-		Component(ComponentType type) : type(type) {};
+		Component(const ComponentType* type) : type(type), voltageDrop(0.0), ampsThrough(0.0) {};
 
-		Component(const Component& cmpt);
-		~Component() = default;
-
-		inline const ComponentType getType() { return type; };
+		inline const ComponentType* getType() { return type; };
 		inline double getVoltageDrop() { return voltageDrop; };
 		inline double getAmpsThrough() { return ampsThrough; };
-		inline Spot* getPositive() { return positive; };
-		inline Spot* getNegative() { return negative; };
+		inline GridSpot* getPositive() { return positive; };
+		inline GridSpot* getNegative() { return negative; };
 
 		inline void setVoltageDrop(double drop) { voltageDrop = drop; };
 		inline void setAmpsThrough(double amps) { ampsThrough = amps; };
 
-		inline void setPositive(Spot** spot) { positive = *spot; };
-		inline void setNegative(Spot** spot) { negative = *spot; };
+		inline void setPositive(GridSpot** spot) { positive = *spot; };
+		inline void setNegative(GridSpot** spot) { negative = *spot; };
 };

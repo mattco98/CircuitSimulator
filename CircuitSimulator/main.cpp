@@ -13,7 +13,7 @@
 #include "Config.h"
 
 int main() {
-	ApplicationManager am(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Circuit Simluator" /*, sf::Style::Fullscreen */);
+	ApplicationManager am(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Circuit Simluator");
 
 	while (am.isOpen()) {
 		am.update();

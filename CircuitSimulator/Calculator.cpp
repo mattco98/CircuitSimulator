@@ -1,6 +1,6 @@
 #include "Calculator.h"
 
-Calculator::Calculator(std::vector<Component*>* components, std::vector<Spot*>* spots) {
+Calculator::Calculator(std::vector<Component*>* components, std::vector<GridSpot*>* spots) {
 	this->components = components;
 
 	// Get populated spots

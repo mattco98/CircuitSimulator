@@ -1,18 +1,2 @@
-﻿  ApplicationManager.cpp
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(275): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(277): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(292): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(291): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(294): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(296): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(300): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(304): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(307): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(324): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(323): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(326): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(328): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(332): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(336): warning C4244: 'argument': conversion from 'unsigned int' to 'float', possible loss of data
-c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(339): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+﻿  Grid.cpp
   CircuitSimulator.vcxproj -> C:\Users\Matthew\Documents\Code\C++\CircuitSimulator\x64\Debug\CircuitSimulator.exe

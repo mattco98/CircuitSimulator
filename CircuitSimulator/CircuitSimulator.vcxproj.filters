@@ -36,9 +36,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Spot.cpp">
-      <Filter>Source Files\types</Filter>
-    </ClCompile>
     <ClCompile Include="ApplicationManager.cpp">
       <Filter>Source Files\state</Filter>
     </ClCompile>
@@ -51,17 +48,14 @@
     <ClCompile Include="Calculator.cpp">
       <Filter>Source Files\state</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentTypes.cpp">
+    <ClCompile Include="GridSpot.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
-    <ClCompile Include="GuiManager.cpp">
+    <ClCompile Include="GuiHelper.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Spot.h">
-      <Filter>Header Files\types</Filter>
-    </ClInclude>
     <ClInclude Include="Grid.h">
       <Filter>Header Files\state</Filter>
     </ClInclude>
@@ -80,11 +74,24 @@
     <ClInclude Include="ComponentTypes.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentType.h">
+    <ClInclude Include="GridSpot.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
-    <ClInclude Include="GuiManager.h">
+    <ClInclude Include="GuiHelper.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Menlo.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resistor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="vsrc.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

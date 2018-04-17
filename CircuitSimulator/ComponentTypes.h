@@ -1,22 +1,37 @@
 #pragma once
 
-#include "ComponentType.h"
+#include <string>
 
-class ComponentTypes {
-	public:
-		static const int NUM_TYPES = 3;
+struct ComponentType {
+    int value;
+    std::string name;
 
-		static const ComponentType WIRE,
-			RESISTOR,
-			VSRC;
+    ComponentType(int value, std::string name) {
+        this->value = value;
+        this->name = name;
+    };
 
-	public:
-		ComponentTypes() {};
-		ComponentTypes(ComponentTypes const&) = delete;
-		void operator =(ComponentTypes const&) = delete;
-		~ComponentTypes() = default;
-
-		// Static helper methods
-		static const ComponentType& getType(int index);
+    inline int getValue() const { return value; }
+    inline std::string getName() const { return name; }
 };
 
+namespace ComponentTypes {
+    const int NUM_TYPES = 3;
+    const ComponentType WIRE(0, "Wire"),
+                        RESISTOR(1, "Resistor"),
+                        VSRC(2, "Voltage Source");
+
+    inline const ComponentType* getType(int i) {
+        switch (i) {
+            case 0:
+                return &ComponentTypes::WIRE;
+                break;
+            case 1:
+                return &ComponentTypes::RESISTOR;
+                break;
+            case 2:
+                return &ComponentTypes::VSRC;
+                break;
+        }
+    };
+}

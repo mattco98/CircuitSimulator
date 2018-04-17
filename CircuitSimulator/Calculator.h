@@ -2,16 +2,16 @@
 
 #include <vector>
 #include "Component.h"
-#include "Spot.h"
+#include "GridSpot.h"
 
 class Calculator {
 	private:
-		Spot* ground;
+		GridSpot* ground;
 		std::vector<Component*>* components;
-		std::vector<Spot*> spots;
+		std::vector<GridSpot*> spots;
 
 	public:
-		Calculator(std::vector<Component*>* components, std::vector<Spot*>* spots);
+		Calculator(std::vector<Component*>* components, std::vector<GridSpot*>* spots);
 		~Calculator();
 
 		void calculate();

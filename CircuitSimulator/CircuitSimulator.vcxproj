@@ -131,23 +131,28 @@
   <ItemGroup>
     <ClCompile Include="ApplicationManager.cpp" />
     <ClCompile Include="Calculator.cpp" />
-    <ClCompile Include="ComponentTypes.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Grid.cpp" />
-    <ClCompile Include="GuiManager.cpp" />
+    <ClCompile Include="GuiHelper.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Spot.cpp" />
+    <ClCompile Include="GridSpot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationManager.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="Component.h" />
-    <ClInclude Include="ComponentType.h" />
     <ClInclude Include="ComponentTypes.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Grid.h" />
-    <ClInclude Include="GuiManager.h" />
-    <ClInclude Include="Spot.h" />
+    <ClInclude Include="GridSpot.h" />
+    <ClInclude Include="GuiHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Menlo.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resistor.png" />
+    <Image Include="vsrc.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

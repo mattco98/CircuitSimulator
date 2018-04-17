@@ -1,5 +1,8 @@
 #include "Config.h"
 
+// General
+const double PI = 3.141592;
+
 // Get default font
 sf::Font getDefaultFont() {
 	sf::Font font;
@@ -12,13 +15,34 @@ const int SCREEN_WIDTH = 1600;
 const int SCREEN_HEIGHT = 900;
 
 // GUI
-const int GUIXPADDING = 30;
-const int GUIYPADDING = 30;
+const int GUI_X_PADDING = 30;
+const int GUI_Y_PADDING = 30;
+const sf::Color BACKGROUND_COLOR = sf::Color(32, 34, 37);
+
+// Panel
+const sf::Vector2f PANEL_TITLE_1 = { float(GUI_X_PADDING), float(GUI_Y_PADDING) };
+const sf::Vector2f PANEL_TITLE_2 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING) };
+const sf::Vector2f PANEL_TITLE_3 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING + 60) };
+const sf::Vector2f PANEL_TITLE_4 = { float(GUI_X_PADDING), float(GUI_Y_PADDING + 60) };
+const sf::Vector2f PANEL_COMP_1 = { float(GUI_X_PADDING), float(GUI_Y_PADDING * 2 + 60) };
+const sf::Vector2f PANEL_COMP_2 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING * 2 + 60) };
+const sf::Vector2f PANEL_COMP_3 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING * 2 + 200) };
+const sf::Vector2f PANEL_COMP_4 = { float(GUI_X_PADDING), float(GUI_Y_PADDING * 2 + 200) };
+const sf::Vector2f PANEL_INSTRUCT_1 = { float(GUI_X_PADDING), float(GUI_Y_PADDING * 3 + 200) };
+const sf::Vector2f PANEL_INSTRUCT_2 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING * 3 + 200) };
+const sf::Vector2f PANEL_INSTRUCT_3 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING * 3 + 560) };
+const sf::Vector2f PANEL_INSTRUCT_4 = { float(GUI_X_PADDING), float(GUI_Y_PADDING * 3 + 560) };
+const sf::Vector2f PANEL_INFO_1 = { float(GUI_X_PADDING), float(GUI_Y_PADDING * 4 + 560) };
+const sf::Vector2f PANEL_INFO_2 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(GUI_Y_PADDING * 4 + 560) };
+const sf::Vector2f PANEL_INFO_3 = { float(GRID_LEFT_OFFSET - GUI_X_PADDING), float(SCREEN_HEIGHT - GUI_Y_PADDING) };
+const sf::Vector2f PANEL_INFO_4 = { float(GUI_X_PADDING), float(SCREEN_HEIGHT - GUI_Y_PADDING) };
 
 // GRID
 const int SPOT_SPACING = 40;
-const int GRID_X_OFFSET = 350;
-const int GRID_Y_OFFSET = 30;
+const int GRID_TOP_OFFSET = GUI_Y_PADDING;
+const int GRID_BOTTOM_OFFSET = GUI_Y_PADDING;
+const int GRID_LEFT_OFFSET = 350;
+const int GRID_RIGHT_OFFSET = GUI_X_PADDING;
 
 // MENU
 const sf::Color DEFAULT_COLOR = sf::Color(225, 225, 225);

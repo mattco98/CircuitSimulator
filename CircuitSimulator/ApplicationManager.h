@@ -5,21 +5,26 @@
 #include <SFML/Graphics.hpp>
 #include "Grid.h"
 #include "Component.h"
+#include "Component.h"
 #include "Config.h"
 
 class ApplicationManager {
 	private:
+        //int alphaTransition = 0;
+        double alpha = 255.0;
+
 		std::vector<sf::Texture> textures;
+
 		bool isPlacing = false;
-		ComponentType selectedComponentType;
-		Component* selectedComponent;
+		const ComponentType* placingComponentType;
+		Component* placingComponent;
+        Component* selectedComponent;
 
 		Grid grid;
 		sf::RenderWindow window;
 
 	public:
 		ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style = sf::Style::Default);
-		~ApplicationManager();
 
 		inline bool isOpen() { return window.isOpen(); };
 		void update();
@@ -35,8 +40,6 @@ class ApplicationManager {
 		void handleMousePressed(sf::Event::MouseButtonEvent event);
 		void handleResized(sf::Event event);
 		void handleClosed();
-		ComponentType getSelectedComponentType();
-		void setSelectedComponentType(ComponentType);
 
 
 		///////////////////////
@@ -44,18 +47,18 @@ class ApplicationManager {
 		///////////////////////
 		void draw(); // Main draw method, all drawing is done here. Called via update
 		void drawGui();
-		void drawComponentMenu();
+        void drawTitlePanel();
+		void drawComponentPanel();
+        void drawInstructionPanel();
+        void drawInfoPanel();
 		void drawComponent(Component* component);
 		void drawWire(Component* component);
 		void drawResistor(Component* component);
 		void drawVSrc(Component* component);
+        //void transitionAlpha();
 
 
 		////////////////////
 		// Helper Methods //
 		////////////////////
-		void drawLine(sf::Vertex p1, sf::Vertex p2);
-		void drawLine(sf::Vector2f p1, sf::Vector2f p2, sf::Color = sf::Color::White);
-		void drawRectangleHollow(sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f p3, sf::Vector2f p4, sf::Color color);
 };
-
