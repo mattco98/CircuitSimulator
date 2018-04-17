@@ -18,6 +18,7 @@ const int SCREEN_HEIGHT = 900;
 const int GUI_X_PADDING = 30;
 const int GUI_Y_PADDING = 30;
 const sf::Color BACKGROUND_COLOR = sf::Color(32, 34, 37);
+const sf::Color BORDER_COLOR = sf::Color(200, 200, 200);
 
 // Panel
 const sf::Vector2f PANEL_TITLE_1 = { float(GUI_X_PADDING), float(GUI_Y_PADDING) };

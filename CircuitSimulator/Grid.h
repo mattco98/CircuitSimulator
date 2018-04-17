@@ -21,5 +21,5 @@ class Grid {
 		void clearComponents() { components.clear(); };
 		void addComponent(Component* component);
 		bool getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const;
-        bool getComponentUnderPosition(sf::Vector2i pos, Component**) const;
+        bool getComponentUnderPosition(sf::Vector2i pos, Component*&) const;
 };

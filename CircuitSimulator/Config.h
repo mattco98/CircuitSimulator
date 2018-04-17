@@ -14,6 +14,7 @@ extern const int SCREEN_HEIGHT;
 extern const int GUI_X_PADDING;
 extern const int GUI_Y_PADDING;
 extern const sf::Color BACKGROUND_COLOR;
+extern const sf::Color BORDER_COLOR;
 
 // Panel border bounds
 extern const sf::Vector2f PANEL_TITLE_1;

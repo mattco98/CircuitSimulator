@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "Grid.h"
 #include "Config.h"
 
@@ -53,8 +54,7 @@ void Grid::addComponent(Component* component) {
 	components.push_back(component);
 }
 
-bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component** nearestComp) const {
-    bool found = false;
+bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component* &nearestComp) const {
     double x,
         y,
         dx,
@@ -63,7 +63,7 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component** nearestComp) 
     GridSpot* spot2;
     Component* component;
 
-    for (int i = 0; i < components.size() && !found; i++) {
+    for (int i = 0; i < components.size(); i++) {
         component = components.at(i);
 
         spot1 = component->getPositive();
@@ -76,9 +76,9 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component** nearestComp) 
         dy = (spot2->y - y) / 100.0;
 
         for (int j = 0; j < 100; j++) {
-            if (x - double(pos.x) < 3.0 && y - double(pos.y) < 3.0) {
-                nearestComp = &component;
-                found = true;
+            if (fabs(x - double(pos.x)) < 10.0 && fabs(y - double(pos.y)) < 10.0) {
+                nearestComp = component;
+                return true;
             }
 
             x += dx;
@@ -86,5 +86,5 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component** nearestComp) 
         }
     }
 
-    return found;
+    return false;
 }

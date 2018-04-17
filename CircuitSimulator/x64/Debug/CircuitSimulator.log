@@ -1,2 +1,4 @@
-﻿  Grid.cpp
+﻿  ApplicationManager.cpp
+c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\applicationmanager.cpp(249): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\matthew\documents\code\c++\circuitsimulator\circuitsimulator\componenttypes.h(36): warning C4715: 'ComponentTypes::getType': not all control paths return a value
   CircuitSimulator.vcxproj -> C:\Users\Matthew\Documents\Code\C++\CircuitSimulator\x64\Debug\CircuitSimulator.exe

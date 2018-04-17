@@ -36,9 +36,6 @@ void ApplicationManager::update() {
 		handleEvent(event);
 	}
 
-    //Component* dummy = new Component(&ComponentTypes::WIRE);
-    //cout << grid.getComponentUnderPosition(sf::Mouse::getPosition(window), &dummy) << endl;
-
 	draw();
 	window.display();
 }
@@ -86,6 +83,18 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
 
             placingComponentType = ComponentTypes::getType(i);
 			break;
+        case sf::Keyboard::Space:
+            if (mode == PLACING) {
+                mode = SELECTING;
+                selectedComponent = nullptr;
+            }
+            break;
+        case sf::Keyboard::P:
+            if (mode == SELECTING || mode == SELECTED) {
+                mode = PLACING;
+                selectedComponent = nullptr;
+            }
+            break;
 		case sf::Keyboard::C:
 			grid.clearComponents();
 			grid.clearComponents();
@@ -102,20 +111,25 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 		sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 		grid.getNearestSpot(mousePos, &spot);
 
-		if (!isPlacing && spot != nullptr) {
+		if (mode == PLACING && spot != nullptr) {
 			placingComponent = new Component(placingComponentType);
 			placingComponent->setPositive(&spot);
-			isPlacing = true;
-		} else if (isPlacing && spot != nullptr) {
+            mode = PLACING_COMPONENT;
+		} else if (mode == PLACING_COMPONENT && spot != nullptr) {
 			placingComponent->setNegative(&spot);
 
 			grid.addComponent(placingComponent);
 			spot->addComponent(placingComponent);
-            selectedComponent = placingComponent;
 
-			isPlacing = false;
+            mode = PLACING;
 		}
-	}
+    } else if (event.button == sf::Mouse::Right && (mode == SELECTING || mode == SELECTED)) {
+        Component* component;
+        if (grid.getComponentUnderPosition({ event.x, event.y }, component)) {
+            selectedComponent = component;
+            mode = SELECTED;
+        }
+    }
 }
 
 void ApplicationManager::handleResized(sf::Event event) {
@@ -141,7 +155,7 @@ void ApplicationManager::draw() {
 		drawComponent(component);
 	}
 
-    if (isPlacing) {
+    if (mode == PLACING_COMPONENT) {
         Component* hover = placingComponent;
         GridSpot* spot;
         if (grid.getNearestSpot(sf::Mouse::getPosition(window), &spot)) {
@@ -201,7 +215,7 @@ void ApplicationManager::drawGui() {
                                    { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
                                    { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
                                    { float(GRID_LEFT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
-                                   GuiHelper::applyAlpha(sf::Color::White, alpha));
+                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
 
 	// Draw dot on nearest grid spot
 	GridSpot* nearestSpot;
@@ -211,19 +225,21 @@ void ApplicationManager::drawGui() {
 		return;
 	}
 
-	sf::CircleShape mouseCircle(7.0f);
-	mouseCircle.setFillColor(GuiHelper::applyAlpha(sf::Color(74, 77, 82), alpha));
-	mouseCircle.setOutlineColor(sf::Color(47, 49, 54));
-	mouseCircle.setOutlineThickness(1.0f);
-	mouseCircle.setPosition(float(nearestSpot->x - 7), float(nearestSpot->y - 7));
+    if (mode == PLACING) {
+        sf::CircleShape mouseCircle(5.0f);
+        mouseCircle.setFillColor(GuiHelper::applyAlpha(sf::Color(74, 77, 82), alpha));
+        mouseCircle.setOutlineColor(sf::Color(47, 49, 54));
+        mouseCircle.setOutlineThickness(1.0f);
+        mouseCircle.setPosition(float(nearestSpot->x - 7), float(nearestSpot->y - 7));
 
-	window.draw(mouseCircle);
+        window.draw(mouseCircle);
+    }
 }
 
 void ApplicationManager::drawTitlePanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, PANEL_TITLE_4,
-                                   GuiHelper::applyAlpha(sf::Color(200, 200, 200), alpha));
+                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
 
     sf::Text title;
     title.setFont(DEFAULT_FONT);
@@ -243,7 +259,7 @@ void ApplicationManager::drawComponentPanel() {
 
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, PANEL_COMP_4,
-            GuiHelper::applyAlpha(sf::Color(200, 200, 200), alpha));
+            GuiHelper::applyAlpha(BORDER_COLOR, alpha));
 
 	sf::Text title;
 	title.setFont(DEFAULT_FONT);
@@ -284,13 +300,13 @@ void ApplicationManager::drawComponentPanel() {
 void ApplicationManager::drawInstructionPanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
-                                   GuiHelper::applyAlpha(sf::Color(200, 200, 200), alpha));
+                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
 }
 
 void ApplicationManager::drawInfoPanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, PANEL_INFO_4,
-                                   GuiHelper::applyAlpha(sf::Color(200, 200, 200), alpha));
+                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
 
     if (selectedComponent != nullptr) {
         sf::Text title,

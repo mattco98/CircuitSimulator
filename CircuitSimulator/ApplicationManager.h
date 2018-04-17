@@ -8,14 +8,23 @@
 #include "Component.h"
 #include "Config.h"
 
+enum Mode {
+    PLACING = 0,
+    PLACING_COMPONENT = 1,
+    SELECTING = 2,
+    SELECTED = 3,
+    TYPING = 4
+};
+
 class ApplicationManager {
 	private:
+        Mode mode = PLACING;
+
         //int alphaTransition = 0;
         double alpha = 255.0;
 
 		std::vector<sf::Texture> textures;
 
-		bool isPlacing = false;
 		const ComponentType* placingComponentType;
 		Component* placingComponent;
         Component* selectedComponent;
