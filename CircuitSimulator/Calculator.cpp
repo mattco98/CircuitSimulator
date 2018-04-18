@@ -1,20 +1,14 @@
 #include "Calculator.h"
 
-Calculator::Calculator(std::vector<Component*>* components, std::vector<GridSpot*>* spots) {
-	this->components = components;
+bool Calculator::isCompleteCircuit(spot_vec& vec, int numComponents) {
+    bool isComplete = numComponents > 0;
 
-	// Get populated spots
-	for (auto it = spots->begin(); it != spots->end(); ++it) {
-		if ((*it)->getComponentNumber() > 0) {
-			spots->push_back(*it);
-		}
-	}
-}
+    for (int i = 0; i < vec.size(); i++) {
+        for (int j = 0; j < vec[0].size(); j++) {
+            if (vec[i][j]->getComponents().size() == 1)
+                isComplete = false;
+        }
+    }
 
-Calculator::~Calculator() {
-	delete components;
-}
-
-void calculate() {
-
+    return isComplete;
 }

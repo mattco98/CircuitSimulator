@@ -4,16 +4,8 @@
 #include "Component.h"
 #include "GridSpot.h"
 
-class Calculator {
-	private:
-		GridSpot* ground;
-		std::vector<Component*>* components;
-		std::vector<GridSpot*> spots;
+typedef std::vector< std::vector<GridSpot*> > spot_vec;
 
-	public:
-		Calculator(std::vector<Component*>* components, std::vector<GridSpot*>* spots);
-		~Calculator();
-
-		void calculate();
-};
-
+namespace Calculator {
+    bool isCompleteCircuit(spot_vec&, int);
+}

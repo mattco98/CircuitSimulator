@@ -1,8 +1,11 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
+#include <cmath>
+#include <regex>
 #include "ApplicationManager.h"
 #include "ComponentTypes.h"
 #include "GuiHelper.h"
+#include "Calculator.h"
 
 // TODO: Debug
 using std::cout;
@@ -29,6 +32,9 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 };
 
 void ApplicationManager::update() {
+    std::vector< std::vector<GridSpot*> > spots = grid.getSpots();
+    cout << Calculator::isCompleteCircuit(spots, grid.getComponents().size()) << endl;
+
 	window.clear(BACKGROUND_COLOR);
 
 	sf::Event event;
@@ -40,16 +46,18 @@ void ApplicationManager::update() {
 	window.display();
 }
 
-
 ////////////////////////
 // Management Methods //
 ////////////////////////
 
 void ApplicationManager::handleEvent(sf::Event event) {
 	switch (event.type) {
-		case sf::Event::KeyPressed:
-			handleKeypress(event.key);
-			break;
+        case sf::Event::KeyPressed:
+            handleKeypress(event.key);
+            break;
+        case sf::Event::TextEntered:
+            handleTextEntered(event.text);
+            break;
 		case sf::Event::MouseButtonPressed:
 			handleMousePressed(event.mouseButton);
 			break;
@@ -57,6 +65,24 @@ void ApplicationManager::handleEvent(sf::Event event) {
 			handleClosed();
 			break;
 	}
+}
+
+void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
+    if (mode == TYPING) {
+        char ch = char(event.unicode);
+
+        if (ch == 't') {
+            return;
+        } else if (ch == 8) {
+            input = input.substr(0, input.size() - 1);
+        } else if (ch != 13) {
+            input += ch;
+        } else {
+            setSelectedComponentValue(input);
+            input = "";
+            mode = SELECTED;
+        }
+    }
 }
 
 void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
@@ -84,7 +110,7 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             placingComponentType = ComponentTypes::getType(i);
 			break;
         case sf::Keyboard::Space:
-            if (mode == PLACING) {
+            if (mode == PLACING || mode == SELECTED) {
                 mode = SELECTING;
                 selectedComponent = nullptr;
             }
@@ -99,9 +125,12 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
 			grid.clearComponents();
 			grid.clearComponents();
 			break;
-        //case sf::Keyboard::A:
-        //    alphaTransition = alpha < 255 ? 1 : 2;
-        //    break;
+        case sf::Keyboard::T:
+            if (mode == SELECTED) {
+                mode = TYPING;
+                
+            }
+            break;
 	}
 }
 
@@ -120,6 +149,7 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 
 			grid.addComponent(placingComponent);
 			spot->addComponent(placingComponent);
+            placingComponent->getPositive()->addComponent(placingComponent);
 
             mode = PLACING;
 		}
@@ -301,6 +331,62 @@ void ApplicationManager::drawInstructionPanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
                                    GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+
+    // Draw different text depending on mode
+
+    // Title - display mode
+    std::string titleStr = "Mode: ";
+    sf::Text title;
+    title.setFont(DEFAULT_FONT);
+    title.setCharacterSize(DEFAULT_FONT_SIZE);
+    title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 215));
+
+    switch (mode) {
+        case PLACING:
+        case PLACING_COMPONENT:
+            titleStr += "Placing";
+            break;
+        case SELECTING:
+            titleStr += "Component Select";
+            break;
+        case SELECTED:
+            titleStr += "Component Selected";
+            break;
+        case TYPING:
+            titleStr += "Text Input";
+    }
+
+    title.setString(titleStr);
+    window.draw(title);
+
+    // Display help information, such as available key presses
+    sf::Text info;
+    info.setFont(DEFAULT_FONT);
+    info.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+    info.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    info.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 250));
+
+    // Draw different information text depending on the mode
+    if (mode == PLACING || mode == PLACING_COMPONENT) {
+        info.setString("In placing mode, you can\nplace different components\non the grid.\n\n"
+                       "Available Actions:\n   Left click:\n\t  Place a component\n   Space:\n\t  Selection mode");
+    } else if (mode == SELECTING) {
+        info.setString("In selection mode, you can\nselect a component in\norder to view its "
+                       "info or\nchange its properties.\n\n"
+                       "Available Actions:\n   Right click:\n\t   Select the\n\t   component under the\n\t   cursor\n"
+                       "   P:\n\t   Placing mode");
+    } else if (mode == SELECTED) {
+        info.setString("In selection mode, you can\nselect a component in\norder to view its "
+                       "info or\nchange its properties.\n\n"
+                       "Available Actions:\n   Right click:\n\t   Select the\n\t   component under the\n\t   cursor\n"
+                       "   P:\n\t   Placing mode\n   T:\n\t   Text entry mode");
+    } else if (mode == TYPING) {
+        info.setString("In text entry mode, you\ncan enter the component\nvalue from your keyboard.\nStart typing, and your\ninput "
+                       "will be shown below.\n\nCurrent Input:\n   " + input);
+    }
+
+    window.draw(info);
 }
 
 void ApplicationManager::drawInfoPanel() {
@@ -317,17 +403,17 @@ void ApplicationManager::drawInfoPanel() {
             voltageDropStr,
             ampsThroughStr;
 
-        titleStr = "Selected Component Type: \n\t" + selectedComponent->getType()->getName();
-        voltageDropStr = "Voltage drop: \n\t" + std::to_string(selectedComponent->getVoltageDrop());
-        ampsThroughStr = "Current through: \n\t" + std::to_string(selectedComponent->getAmpsThrough());
+        titleStr = "Selected Component Type:\n\t" + selectedComponent->getType()->getName();
+        voltageDropStr = "Voltage difference:\n\t" + std::to_string(selectedComponent->getVoltageDrop());
+        ampsThroughStr = "Current through:\n\t" + std::to_string(selectedComponent->getAmpsThrough());
 
         title.setFont(DEFAULT_FONT);
         voltageDrop.setFont(DEFAULT_FONT);
         ampsThrough.setFont(DEFAULT_FONT);
 
-        title.setCharacterSize(DEFAULT_FONT_SIZE);
-        voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE);
-        ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE);
+        title.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+        voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+        ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE - 2);
 
         title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
         voltageDrop.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
@@ -337,20 +423,38 @@ void ApplicationManager::drawInfoPanel() {
         voltageDrop.setString(voltageDropStr);
         ampsThrough.setString(ampsThroughStr);
 
-        title.setPosition({ float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 570) });
-        voltageDrop.setPosition({ float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 630) });
-        ampsThrough.setPosition({ float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 690) });
+        title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 540));
+        voltageDrop.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 590));
+        ampsThrough.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 640));
 
         window.draw(title);
         window.draw(voltageDrop);
         window.draw(ampsThrough);
+
+        if (selectedComponent->getType() != &ComponentTypes::WIRE) {
+            std::string valueText = "Value:\n\t" + std::to_string(selectedComponent->getValue());
+
+            if (selectedComponent->getType() == &ComponentTypes::RESISTOR)
+                valueText += " Ohms";
+            else
+                valueText += " V";
+
+            sf::Text value;
+            value.setFont(DEFAULT_FONT);
+            value.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+            value.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+            value.setString(valueText);
+            value.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 690));
+
+            window.draw(value);
+        }
     } else {
         sf::Text text;
         text.setFont(DEFAULT_FONT);
         text.setCharacterSize(DEFAULT_FONT_SIZE);
         text.setString("No Component Selected");
         text.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
-        text.setPosition({ float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 640) });
+        text.setPosition({ float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 610) });
 
         window.draw(text);
     }
@@ -468,4 +572,32 @@ void ApplicationManager::drawVSrc(Component* component) {
 	window.draw(rect1);
 	window.draw(rect2);
 	window.draw(vsrc);
+}
+
+void ApplicationManager::setSelectedComponentValue(std::string input) {
+    double val;
+    std::string prefix;
+    std::regex reg("^([\\d\\.]+) ?(n|m|k|M|G)?$");
+    std::smatch match;
+
+    if (std::regex_search(input, match, reg) && match.size() > 1 && selectedComponent != nullptr) {
+        val = std::stod(match.str(1));
+
+        if (match.size() > 2) {
+            prefix = match.str(2);
+
+            if (prefix == "n")
+                val *= pow(10.0, -9.0);
+            else if (prefix == "m")
+                val *= pow(10.0, -3.0);
+            else if (prefix == "k")
+                val *= pow(10.0, 3.0);
+            else if (prefix == "M")
+                val *= pow(10.0, 6.0);
+            else if (prefix == "G")
+                val *= pow(10.0, 9.0);
+        }
+
+        selectedComponent->setValue(val);
+    }
 }

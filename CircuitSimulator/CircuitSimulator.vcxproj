@@ -135,7 +135,6 @@
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="GuiHelper.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="GridSpot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationManager.h" />

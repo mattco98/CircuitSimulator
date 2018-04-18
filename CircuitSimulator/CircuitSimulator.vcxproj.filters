@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\types">
-      <UniqueIdentifier>{d9732b76-8686-42ec-a39c-895f80ca15fd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\types">
       <UniqueIdentifier>{03a7629b-c0f9-40e3-926b-fad35447f77b}</UniqueIdentifier>
     </Filter>
@@ -47,9 +44,6 @@
     </ClCompile>
     <ClCompile Include="Calculator.cpp">
       <Filter>Source Files\state</Filter>
-    </ClCompile>
-    <ClCompile Include="GridSpot.cpp">
-      <Filter>Source Files\types</Filter>
     </ClCompile>
     <ClCompile Include="GuiHelper.cpp">
       <Filter>Source Files\gui</Filter>

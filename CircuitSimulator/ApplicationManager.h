@@ -19,6 +19,7 @@ enum Mode {
 class ApplicationManager {
 	private:
         Mode mode = PLACING;
+        std::string input = "";
 
         //int alphaTransition = 0;
         double alpha = 255.0;
@@ -45,6 +46,7 @@ class ApplicationManager {
 		// Management Methods //
 		////////////////////////
 		void handleEvent(sf::Event event);
+        void handleTextEntered(sf::Event::TextEvent event);
 		void handleKeypress(sf::Event::KeyEvent event);
 		void handleMousePressed(sf::Event::MouseButtonEvent event);
 		void handleResized(sf::Event event);
@@ -70,4 +72,5 @@ class ApplicationManager {
 		////////////////////
 		// Helper Methods //
 		////////////////////
+        void setSelectedComponentValue(std::string);
 };
