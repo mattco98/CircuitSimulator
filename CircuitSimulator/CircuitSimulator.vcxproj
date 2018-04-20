@@ -131,15 +131,21 @@
   <ItemGroup>
     <ClCompile Include="ApplicationManager.cpp" />
     <ClCompile Include="Calculator.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentType.cpp" />
+    <ClCompile Include="ComponentTypes.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="GridSpot.cpp" />
     <ClCompile Include="GuiHelper.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationManager.h" />
     <ClInclude Include="Calculator.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentType.h" />
     <ClInclude Include="ComponentTypes.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Grid.h" />

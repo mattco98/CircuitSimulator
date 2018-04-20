@@ -28,6 +28,9 @@
     <Filter Include="Header Files\gui">
       <UniqueIdentifier>{17466a05-facc-4e06-90fc-2b741a3d71d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\types">
+      <UniqueIdentifier>{7540f8f7-5427-4eca-934f-b6326e0e7c98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -47,6 +50,21 @@
     </ClCompile>
     <ClCompile Include="GuiHelper.cpp">
       <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentTypes.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="GridSpot.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentType.cpp">
+      <Filter>Source Files\types</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +93,9 @@
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="Node.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentType.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
   </ItemGroup>

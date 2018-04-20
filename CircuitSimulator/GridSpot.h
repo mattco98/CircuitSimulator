@@ -12,10 +12,10 @@ struct GridSpot {
 
 	// TODO: vector of tuples to track polarity?
 	std::vector<Component*> components;
-    Node* node = nullptr;
+    Node* node;
 
-    GridSpot(int x, int y) : x(x), y(y) {};
-    GridSpot(sf::Vector2i v) : x(v.x), y(v.y) {};
+    GridSpot(int, int);
+    GridSpot(sf::Vector2i);
 
-    inline sf::Vector2f getVector() const { return sf::Vector2f{ float(x), float(y) }; };
+    sf::Vector2f getVector() const;
 };

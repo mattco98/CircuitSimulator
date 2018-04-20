@@ -17,23 +17,20 @@ class Component {
 		GridSpot* negative;
 
 	public:
-		Component() = delete;
-		Component(const ComponentType* type) : type(type), value(5.0), voltageDrop(0.0), ampsThrough(0.0) {};
+		Component(const ComponentType* type);
 
-		inline const ComponentType* getType() { return type; };
-        inline double getValue() { return value; }
-		inline double getVoltageDrop() { return voltageDrop; };
-		inline double getAmpsThrough() { return ampsThrough; };
-		inline GridSpot* getPositive() { return positive; };
-		inline GridSpot* getNegative() { return negative; };
-        inline GridSpot* getOther(GridSpot* s) {
-            return s == positive ? positive : (s == negative ? negative : nullptr);
-        }
+        const ComponentType* getType();
+        double getValue();
+        double getVoltageDrop();
+		double getAmpsThrough();
+		GridSpot* getPositive();
+		GridSpot* getNegative();
+        GridSpot* getOther(GridSpot* s);
 
-        inline void setValue(double v) { value = v; }
-		inline void setVoltageDrop(double drop) { voltageDrop = drop; };
-		inline void setAmpsThrough(double amps) { ampsThrough = amps; };
+        void setValue(double v);
+		void setVoltageDrop(double drop);
+		void setAmpsThrough(double amps);
 
-		inline void setPositive(GridSpot** spot) { positive = *spot; };
-		inline void setNegative(GridSpot** spot) { negative = *spot; };
+		void setPositive(GridSpot** spot);
+		void setNegative(GridSpot** spot);
 };
