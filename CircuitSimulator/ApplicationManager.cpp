@@ -33,7 +33,6 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 
 void ApplicationManager::update() {
     std::vector< std::vector<GridSpot*> > spots = grid.getSpots();
-    cout << Calculator::isCompleteCircuit(spots, grid.getComponents().size()) << endl;
 
 	window.clear(BACKGROUND_COLOR);
 
@@ -131,6 +130,9 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
                 
             }
             break;
+        case sf::Keyboard::K:
+            Calculator::calculate(grid.getSpots(), grid.getComponents());
+            break;
 	}
 }
 
@@ -148,8 +150,8 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 			placingComponent->setNegative(&spot);
 
 			grid.addComponent(placingComponent);
-			spot->addComponent(placingComponent);
-            placingComponent->getPositive()->addComponent(placingComponent);
+			spot->components.push_back(placingComponent);
+            placingComponent->getPositive()->components.push_back(placingComponent);
 
             mode = PLACING;
 		}
@@ -276,7 +278,7 @@ void ApplicationManager::drawTitlePanel() {
     title.setCharacterSize(DEFAULT_FONT_SIZE + 6);
     title.setString("Circuit Simulator");
     title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
-    title.setPosition(GUI_X_PADDING + 15, GUI_Y_PADDING + 15);
+    title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING + 15));
     title.setStyle(sf::Text::Style::Bold);
 
     window.draw(title);

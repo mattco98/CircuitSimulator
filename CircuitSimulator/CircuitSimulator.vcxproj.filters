@@ -74,6 +74,9 @@
     <ClInclude Include="GuiHelper.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
+    <ClInclude Include="Node.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Font Include="Menlo.ttf">

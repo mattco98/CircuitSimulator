@@ -145,6 +145,7 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="GridSpot.h" />
     <ClInclude Include="GuiHelper.h" />
+    <ClInclude Include="Node.h" />
   </ItemGroup>
   <ItemGroup>
     <Font Include="Menlo.ttf" />

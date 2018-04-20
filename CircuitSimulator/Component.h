@@ -26,6 +26,9 @@ class Component {
 		inline double getAmpsThrough() { return ampsThrough; };
 		inline GridSpot* getPositive() { return positive; };
 		inline GridSpot* getNegative() { return negative; };
+        inline GridSpot* getOther(GridSpot* s) {
+            return s == positive ? positive : (s == negative ? negative : nullptr);
+        }
 
         inline void setValue(double v) { value = v; }
 		inline void setVoltageDrop(double drop) { voltageDrop = drop; };

@@ -6,10 +6,7 @@ struct ComponentType {
     int value;
     std::string name;
 
-    ComponentType(int value, std::string name) {
-        this->value = value;
-        this->name = name;
-    };
+    ComponentType(int v, std::string n) : value(v), name(n) {}
 
     inline int getValue() const { return value; }
     inline std::string getName() const { return name; }
@@ -17,21 +14,22 @@ struct ComponentType {
 
 namespace ComponentTypes {
     const int NUM_TYPES = 3;
-    const ComponentType WIRE(0, "Wire"),
-                        RESISTOR(1, "Resistor"),
-                        VSRC(2, "Voltage Source");
+    const ComponentType WIRE(0, "Wire");
+    const ComponentType RESISTOR(1, "Resistor");
+    const ComponentType VSRC(2, "Voltage Source");
 
     inline const ComponentType* getType(int i) {
         switch (i) {
             case 0:
-                return &ComponentTypes::WIRE;
+                return &WIRE;
                 break;
             case 1:
-                return &ComponentTypes::RESISTOR;
+                return &RESISTOR;
                 break;
             case 2:
-                return &ComponentTypes::VSRC;
+                return &VSRC;
                 break;
         }
+        return nullptr;
     };
 }
