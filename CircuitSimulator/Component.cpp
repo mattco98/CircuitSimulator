@@ -32,7 +32,7 @@ GridSpot* Component::getNegative() {
 };
 
 GridSpot* Component::getOther(GridSpot* s) {
-    return s == positive ? positive : (s == negative ? negative : nullptr);
+    return s == positive ? negative : (s == negative ? positive : nullptr);
 }
 
 void Component::setValue(double v) {
