@@ -155,11 +155,27 @@ std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode> grid
                 }
             }
 
+            Polarity pol = Polarity::UNKNOWN;
+
+            // Determine polarity
+            for (GridSpot* spot : other.spots) {
+                if (component->getPositive() == spot) {
+                    pol = Polarity::NEGATIVE;
+                } else if (component->getNegative() == spot) {
+                    pol = Polarity::POSITIVE;
+                }
+            }
+
+            if (pol == Polarity::UNKNOWN) {
+                throw std::runtime_error("Unable to determine component polarity");
+            }
+
             // Form connection between this Node and other Node
             nodes[i].addConnection(
                 &nodes[other.id],
                 component->getValue(),
-                component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT
+                component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT,
+                pol
             );
         }
     }
@@ -203,27 +219,28 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
 
         int i = 0;
         while (node1Tuples.size() > 0 && i < node1Tuples.size()) {
-            auto t = node1Tuples[i];
-            if (std::get<2>(t) == ValueType::OHM) {
-                eqOhms += 1.0 / std::get<1>(t);
+            auto t1 = node1Tuples[i];
+            if (std::get<2>(t1) == ValueType::OHM) {
+                eqOhms += 1.0 / std::get<1>(t1);
 
                 // Remove resistor connections. Will be replaced later with
                 // single equivalent connection
-                node1->removeConnection(t);
+                node1->removeConnection(t1);
 
                 // Search for matching connection from node2 to node1
-                for (auto t1 : node2Tuples) {
-                    if (std::get<0>(t1)->id == node1->id &&
-                        std::get<1>(t1) == std::get<1>(t) &&
-                        std::get<2>(t1) == std::get<2>(t)) {
-                        node2->removeConnection(t1);
+                for (auto t2 : node2Tuples) {
+                    if (std::get<0>(t2)->id == node1->id &&
+                        std::get<1>(t2) == std::get<1>(t1) &&
+                        std::get<2>(t2) == std::get<2>(t1) && 
+                        std::get<3>(t2) == !std::get<3>(t1)) {
+                        node2->removeConnection(t2);
                         break;
                     }
                 }
 
                 node1Tuples = node1->getConnectionsToNode(node2);
                 node2Tuples = node2->getConnectionsToNode(node1);
-            } else if (std::get<2>(t) == ValueType::VOLT) {
+            } else if (std::get<2>(t1) == ValueType::VOLT) {
                 numVolts++;
                 i++;
             }
@@ -238,8 +255,10 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
         if (!(fabs(eqOhms) <= 1e-5)) {
             eqOhms = 1.0 / eqOhms;
 
-            node1->addConnection(node2, eqOhms, ValueType::OHM);
-            node2->addConnection(node1, eqOhms, ValueType::OHM);
+            // Resistor polarity is arbitrary, however it is important that 
+            // the polarities be opposite.
+            node1->addConnection(node2, eqOhms, ValueType::OHM, Polarity::POSITIVE);
+            node2->addConnection(node1, eqOhms, ValueType::OHM, Polarity::NEGATIVE);
         }
     }
 }
