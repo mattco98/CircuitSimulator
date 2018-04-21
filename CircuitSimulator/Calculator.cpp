@@ -1,7 +1,7 @@
 #include <armadillo>
+#include <stdexcept>
 #include "Calculator.h"
 #include "GridNode.h"
-#include "Node.h"
 
 using namespace arma;
 
@@ -37,46 +37,10 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         return false;
     } else {
         std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
-        std::vector<Node> nodes;
+        std::vector<Node> nodes = convertGridNodesToNodes(gridNodes);
+        std::vector<Node> reducedNodes = reduceNodes(nodes);
 
-        // Convert GridNodes to Nodes
-
-        // Initialize Nodes
-        for (int i = 0; i < gridNodes.size(); i++) {
-            Node node(i);
-            gridNodes[i].id = i;
-            nodes.push_back(node);
-        }
-
-        // Form Node connections
-        for (int i = 0; i < nodes.size(); i++) {
-            // List of gridNode components
-            std::vector<Component*> components = gridNodes[i].getNonWireComponents();
-
-            for (Component* component : components) {
-                GridNode other;
-
-                // Find the other gridNode this component is connected to
-                for (GridNode gridNode : gridNodes) {
-                    if (gridNode != gridNodes[i]) {
-                        for (Component* otherComponent : gridNode.getNonWireComponents()) {
-                            if (otherComponent == component) {
-                                other = gridNode;
-                            }
-                        }
-                    }
-                }
-
-                // Form connection between this Node and other Node
-                nodes[i].addConnection(
-                    &nodes[other.id],
-                    component->getValue(),
-                    component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT
-                );
-            }
-        }
-
-        for (Node node : nodes) {
+        for (Node node : reducedNodes) {
             node.print(std::cout);
         }
 
@@ -160,4 +124,122 @@ std::vector<GridSpot*> Calculator::getNeighboorSpots(GridSpot* spot) {
     }
 
     return neighboors;
+}
+
+std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode> gridNodes) {
+    std::vector<Node> nodes;
+
+    // Initialize Nodes
+    for (int i = 0; i < gridNodes.size(); i++) {
+        Node node(i);
+        gridNodes[i].id = i;
+        nodes.push_back(node);
+    }
+
+    // Form Node connections
+    for (int i = 0; i < nodes.size(); i++) {
+        // List of gridNode components
+        std::vector<Component*> components = gridNodes[i].getNonWireComponents();
+
+        for (Component* component : components) {
+            GridNode other;
+
+            // Find the other gridNode this component is connected to
+            for (GridNode gridNode : gridNodes) {
+                if (gridNode != gridNodes[i]) {
+                    for (Component* otherComponent : gridNode.getNonWireComponents()) {
+                        if (otherComponent == component) {
+                            other = gridNode;
+                        }
+                    }
+                }
+            }
+
+            // Form connection between this Node and other Node
+            nodes[i].addConnection(
+                &nodes[other.id],
+                component->getValue(),
+                component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT
+            );
+        }
+    }
+
+    return nodes;
+}
+
+std::vector<Node> Calculator::reduceNodes(std::vector<Node> nodes) {
+    std::vector<Node> reducedNodes = nodes;
+
+    for (int i = 0; i < nodes.size(); i++) {
+        for (int j = 0; j < nodes.size(); j++) {
+            if (i != j) {
+                reduceNodeConnection(&reducedNodes[i], &reducedNodes[j]);
+            }
+        }
+    }
+
+    return reducedNodes;
+}
+
+void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
+    auto node1Tuples = node1->getConnectionsToNode(node2);
+    auto node2Tuples = node2->getConnectionsToNode(node1);
+
+    if (node1Tuples.size() == 0 && node2Tuples.size() == 0) {
+        return;
+    }
+
+    if (node1Tuples.size() != node2Tuples.size()) {
+        throw std::runtime_error("Nodes do not share an equal amount of connections");
+    }
+
+    // Reduce connections
+    if (node1Tuples.size() > 1) {
+        // Voltages sources cannot be in parallel. If there is more than
+        // one voltage source connection between these nodes, throw an
+        // error.
+        int numVolts = 0;
+        double eqOhms = 0.0;
+
+        int i = 0;
+        while (node1Tuples.size() > 0 && i < node1Tuples.size()) {
+            auto t = node1Tuples[i];
+            if (std::get<2>(t) == ValueType::OHM) {
+                eqOhms += 1.0 / std::get<1>(t);
+
+                // Remove resistor connections. Will be replaced later with
+                // single equivalent connection
+                node1->removeConnection(t);
+
+                // Search for matching connection from node2 to node1
+                for (auto t1 : node2Tuples) {
+                    if (std::get<0>(t1)->id == node1->id &&
+                        std::get<1>(t1) == std::get<1>(t) &&
+                        std::get<2>(t1) == std::get<2>(t)) {
+                        node2->removeConnection(t1);
+                        break;
+                    }
+                }
+
+                node1Tuples = node1->getConnectionsToNode(node2);
+                node2Tuples = node2->getConnectionsToNode(node1);
+            } else if (std::get<2>(t) == ValueType::VOLT) {
+                numVolts++;
+                i++;
+            }
+        }
+
+        if (numVolts > 1) {
+            throw std::runtime_error("Voltage sources cannot be in parallel "
+                                     "with each other");
+        }
+        
+        // Add equivalent resistor connection
+        if (!(fabs(eqOhms) <= 1e-5)) {
+            eqOhms = 1.0 / eqOhms;
+
+            node1->addConnection(node2, eqOhms, ValueType::OHM);
+            node2->addConnection(node1, eqOhms, ValueType::OHM);
+        }
+    }
 }

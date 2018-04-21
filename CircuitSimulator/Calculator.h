@@ -4,6 +4,7 @@
 #include <vector>
 #include "Component.h"
 #include "GridSpot.h"
+#include "Node.h"
 
 typedef std::vector< std::vector<GridSpot*> > spot_vec;
 
@@ -15,4 +16,10 @@ namespace Calculator {
     GridNode getGridNodeFromSpot(GridSpot*, GridNode&);
 
     std::vector<GridSpot*> getNeighboorSpots(GridSpot*);
+
+    std::vector<Node> convertGridNodesToNodes(std::vector<GridNode>);
+
+    std::vector<Node> reduceNodes(std::vector<Node>);
+
+    void reduceNodeConnection(Node*, Node*);
 }

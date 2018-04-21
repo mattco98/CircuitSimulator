@@ -12,6 +12,7 @@ void Node::removeConnection(Node* node, double value, ValueType type) {
     for (int i = 0; i < connections.size(); i++) {
         if (connections[i] == std::make_tuple(node, value, type)) {
             connections.erase(connections.begin() + i);
+            return;
         }
     }
 }
@@ -20,6 +21,7 @@ void Node::removeConnection(std::tuple<Node*, double, ValueType> t) {
     for (int i = 0; i < connections.size(); i++) {
         if (connections[i] == t) {
             connections.erase(connections.begin() + i);
+            return;
         }
     }
 }
@@ -35,7 +37,7 @@ void Node::removeConnections(Node* node) {
 std::vector< std::tuple<Node*, double, ValueType> > Node::getConnectionsToNode(Node* node) const {
     std::vector< std::tuple<Node*, double, ValueType> > connects;
     for (auto t : connections) {
-        if (std::get<0>(t) == node)
+        if (std::get<0>(t)->id == node->id)
             connects.push_back(t);
     }
     return connects;
