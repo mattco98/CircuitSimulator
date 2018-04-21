@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "Component.h"
 
-struct Node;
+struct GridNode;
 
 struct GridSpot {
 	int x,
@@ -12,7 +12,7 @@ struct GridSpot {
 
 	// TODO: vector of tuples to track polarity?
 	std::vector<Component*> components;
-    Node* node;
+    GridNode* node;
 
     GridSpot(int, int);
     GridSpot(sf::Vector2i);

@@ -1,2 +1,12 @@
-﻿  Calculator.cpp
+﻿  Node.cpp
+  GridNode.cpp
+  Calculator.cpp
+  Generating Code...
+  Compiling...
+  main.cpp
+  GridSpot.cpp
+  Grid.cpp
+  ApplicationManager.cpp
+  Generating Code...
   CircuitSimulator.vcxproj -> C:\Users\Matthew\Documents\Code\C++\CircuitSimulator\x64\Debug\CircuitSimulator.exe
+  CircuitSimulator.vcxproj -> C:\Users\Matthew\Documents\Code\C++\CircuitSimulator\x64\Debug\CircuitSimulator.pdb (Partial PDB)

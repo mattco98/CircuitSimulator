@@ -1,6 +1,9 @@
-#include <iostream>
+#include <armadillo>
 #include "Calculator.h"
+#include "GridNode.h"
 #include "Node.h"
+
+using namespace arma;
 
 bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     bool isCompleteCircuit = true;
@@ -33,17 +36,59 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
         return false;
     } else {
-        std::vector<Node> nodes = getNodes(populatedSpots);
+        std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
+        std::vector<Node> nodes;
+
+        // Convert GridNodes to Nodes
+
+        // Initialize Nodes
+        for (int i = 0; i < gridNodes.size(); i++) {
+            Node node(i);
+            gridNodes[i].id = i;
+            nodes.push_back(node);
+        }
+
+        // Form Node connections
+        for (int i = 0; i < nodes.size(); i++) {
+            // List of gridNode components
+            std::vector<Component*> components = gridNodes[i].getNonWireComponents();
+
+            for (Component* component : components) {
+                GridNode other;
+
+                // Find the other gridNode this component is connected to
+                for (GridNode gridNode : gridNodes) {
+                    if (gridNode != gridNodes[i]) {
+                        for (Component* otherComponent : gridNode.getNonWireComponents()) {
+                            if (otherComponent == component) {
+                                other = gridNode;
+                            }
+                        }
+                    }
+                }
+
+                // Form connection between this Node and other Node
+                nodes[i].addConnection(
+                    &nodes[other.id],
+                    component->getValue(),
+                    component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT
+                );
+            }
+        }
+
+        for (Node node : nodes) {
+            node.print(std::cout);
+        }
 
         return true;
     }
 }
 
-std::vector<Node> Calculator::getNodes(std::vector<GridSpot*> spots) {
+std::vector<GridNode> Calculator::getGridNodes(std::vector<GridSpot*> spots) {
     // Holds all circuit nodes. A node is a section of the circuit that
     // shares a common voltage. In other words, the node at a point is
     // everything connected to that point via a wire.
-    std::vector<Node> nodes;
+    std::vector<GridNode> nodes;
 
     std::vector<GridSpot*>::iterator it = spots.begin();
 
@@ -68,11 +113,11 @@ std::vector<Node> Calculator::getNodes(std::vector<GridSpot*> spots) {
         }
 
         if (!seen) {
-            Node node;
+            GridNode node;
             node.spots.push_back(*it);
 
             // Get Node from circuit recursively
-            getNodeFromSpot(*it, node);
+            getGridNodeFromSpot(*it, node);
 
             nodes.push_back(node);
             ++it;
@@ -82,7 +127,7 @@ std::vector<Node> Calculator::getNodes(std::vector<GridSpot*> spots) {
     return nodes;
 }
 
-Node Calculator::getNodeFromSpot(GridSpot* spot, Node& node) {
+GridNode Calculator::getGridNodeFromSpot(GridSpot* spot, GridNode& node) {
     std::vector<GridSpot*> spots = getNeighboorSpots(spot);
 
     for (int i = 0; i < spots.size(); i++) {
@@ -97,7 +142,7 @@ Node Calculator::getNodeFromSpot(GridSpot* spot, Node& node) {
         if (!seen) {
             node.spots.push_back(nSpot);
 
-            getNodeFromSpot(nSpot, node);
+            getGridNodeFromSpot(nSpot, node);
         } 
     }
 

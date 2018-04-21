@@ -41,7 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -74,8 +74,8 @@
     <LibraryPath>D:\Software\Libraries\SFML\SFML-build\lib\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\Software\Libraries\SFML\SFML-src\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Software\Libraries\SFML\SFML-build\lib\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\Software\Libraries\armadillo\include;D:\Software\Libraries\SFML\SFML-src\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Software\Libraries\armadillo\examples\lib_win64;D:\Software\Libraries\SFML\SFML-build\lib\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,7 +97,7 @@
     </ClCompile>
     <Link />
     <Link>
-      <AdditionalDependencies>sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;blas_win64_MT.lib;lapack_win64_MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -139,6 +139,7 @@
     <ClCompile Include="GridSpot.cpp" />
     <ClCompile Include="GuiHelper.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="GridNode.cpp" />
     <ClCompile Include="Node.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +152,7 @@
     <ClInclude Include="Grid.h" />
     <ClInclude Include="GridSpot.h" />
     <ClInclude Include="GuiHelper.h" />
+    <ClInclude Include="GridNode.h" />
     <ClInclude Include="Node.h" />
   </ItemGroup>
   <ItemGroup>

@@ -10,9 +10,9 @@ typedef std::vector< std::vector<GridSpot*> > spot_vec;
 namespace Calculator {
     bool calculate(spot_vec, std::vector<Component*>);
 
-    std::vector<Node> getNodes(std::vector<GridSpot*> spots);
+    std::vector<GridNode> getGridNodes(std::vector<GridSpot*> spots);
 
-    Node getNodeFromSpot(GridSpot*, Node&);
+    GridNode getGridNodeFromSpot(GridSpot*, GridNode&);
 
     std::vector<GridSpot*> getNeighboorSpots(GridSpot*);
 }

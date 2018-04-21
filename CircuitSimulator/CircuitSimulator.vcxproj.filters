@@ -60,10 +60,13 @@
     <ClCompile Include="GridSpot.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
-    <ClCompile Include="Node.cpp">
+    <ClCompile Include="ComponentType.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentType.cpp">
+    <ClCompile Include="GridNode.cpp">
+      <Filter>Source Files\types</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,10 +95,13 @@
     <ClInclude Include="GuiHelper.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="Node.h">
+    <ClInclude Include="ComponentType.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentType.h">
+    <ClInclude Include="GridNode.h">
+      <Filter>Header Files\types</Filter>
+    </ClInclude>
+    <ClInclude Include="Node.h">
       <Filter>Header Files\types</Filter>
     </ClInclude>
   </ItemGroup>
