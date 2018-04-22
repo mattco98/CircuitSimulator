@@ -121,13 +121,13 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
 			grid.clearComponents();
 			break;
         case sf::Keyboard::S:
-            if (mode == SELECTED && selectedComponent->getType() != &ComponentTypes::WIRE) {
+            if (mode == SELECTED && selectedComponent->getType() != &ComponentTypes::WIRE)
                 mode = TYPING;
-                
-            }
             break;
-        case sf::Keyboard::K:
-            Calculator::calculate(grid.getSpots(), grid.getComponents());
+        case sf::Keyboard::D:
+            grid.removeComponent(selectedComponent);
+            selectedComponent = nullptr;
+            recalculate();
             break;
 	}
 
@@ -386,7 +386,7 @@ void ApplicationManager::drawInstructionPanel() {
                   "its properties.\n\nAvailable Actions:\n   Right click:\n\t"
                   "   Select the\n\t   component under the\n\t   cursor\n   "
                   "P:\n\t   Place Components";
-        if (selectedComponent->getType() != &ComponentTypes::WIRE) {
+        if (selectedComponent != nullptr && selectedComponent->getType() != &ComponentTypes::WIRE) {
             infoStr += "\n   S:\n\t   Set component value";
         }
     } else if (mode == TYPING) {

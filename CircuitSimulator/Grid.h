@@ -18,8 +18,10 @@ class Grid {
 
 		std::vector<Component*> getComponents() const;
 		std::vector< std::vector<GridSpot*> > getSpots() const;
+        bool getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const;
+        bool getComponentUnderPosition(sf::Vector2i pos, Component*&) const;
+
         void clearComponents();
 		void addComponent(Component* component);
-		bool getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const;
-        bool getComponentUnderPosition(sf::Vector2i pos, Component*&) const;
+        void removeComponent(Component* component);
 };

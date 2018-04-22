@@ -37,16 +37,6 @@ std::vector< std::vector<GridSpot*> > Grid::getSpots() const {
     return spots;
 };
 
-void Grid::clearComponents() {
-    components.clear();
-
-    for (std::vector<GridSpot*> row : spots) {
-        for (GridSpot* spot : row) {
-            spot->components.clear();
-        }
-    }
-}
-
 bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const {
     int numSpotsHorz = width / SPOT_SPACING;
     int numSpotsVert = height / SPOT_SPACING;
@@ -57,18 +47,14 @@ bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const {
     int x = mousePos.x - GRID_LEFT_OFFSET - paddingHorz;
     int y = mousePos.y - GRID_TOP_OFFSET - paddingVert;
 
-    int xIndex = (int) round(double(x) / double(SPOT_SPACING));
-    int yIndex = (int) round(double(y) / double(SPOT_SPACING));
+    int xIndex = (int)round(double(x) / double(SPOT_SPACING));
+    int yIndex = (int)round(double(y) / double(SPOT_SPACING));
 
     if (xIndex < 0 || yIndex < 0 || xIndex > numSpotsHorz - 1 || yIndex > numSpotsVert - 1)
         return false;
 
     *spot = spots[yIndex][xIndex];
     return true;
-}
-
-void Grid::addComponent(Component* component) {
-	components.push_back(component);
 }
 
 bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component* &nearestComp) const {
@@ -104,4 +90,48 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component* &nearestComp) 
     }
 
     return false;
+}
+
+void Grid::clearComponents() {
+    components.clear();
+
+    for (std::vector<GridSpot*> row : spots) {
+        for (GridSpot* spot : row) {
+            spot->components.clear();
+        }
+    }
+}
+
+void Grid::addComponent(Component* component) {
+	components.push_back(component);
+}
+
+void Grid::removeComponent(Component* component) {
+    std::vector<Component*>::iterator it = components.begin();
+    bool deleted = false;
+
+    for (std::vector<GridSpot*> row : spots) {
+        for (GridSpot* spot : row) {
+            deleted = false;
+            std::vector<Component*>::iterator it = spot->components.begin();
+            while (!deleted && it != spot->components.end()) {
+                if (*it == component) {
+                    spot->components.erase(it);
+                    deleted = true;
+                } else {
+                    ++it;
+                }
+            }
+        }
+    }
+
+    deleted = false;
+    while (!deleted && it != components.end()) {
+        if (*it == component) {
+            components.erase(it);
+            deleted = true;
+        } else {
+            ++it;
+        }
+    }
 }
