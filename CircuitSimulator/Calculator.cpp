@@ -45,13 +45,21 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     //    node.print(std::cout);
     //}
 
-    // Start calculating KCL matrices
+    // Begin the process of populating a matrix to solve for the 
+    // node voltages
 
     mat kcl(nodes.size(), nodes.size());
     mat coeff(nodes.size(), 1);
 
     kcl.fill(0.0);
     coeff.fill(0.0);
+
+    // In order to properly perform nodal analysis, one of the nodes must
+    // be grounded. The node that gets grounded is completely arbitrary,
+    // so here it is always the first node (node 0). The only side effect
+    // is that some nodes may have negative voltage, but it is trivial to
+    // "normalize" the voltages after they are calculated.
+    const int GROUND = 0;
 
     // There are exactly "nodes.size()" number of equations. Since some equations
     // come from doing KCL at nodes and some come from voltage source relations,
@@ -68,25 +76,54 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
     // Loop through the nodes and get every possible KCL equation
     for (Node node : reducedNodes) {
-        bool consider = true;
-        for (Node* excludedNode : excludedNodes) {
-            if (*excludedNode == node)
-                consider = false;
-        }
+        if (node.id == GROUND) {
+            // The voltage at the ground is 0
+            kcl(row, GROUND) = 1;
 
-        if (consider) {
-            for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
-                // The term.res (aka resistance of the resistor) corresponds to a 
-                // particular node. By the nature of the way KCL equations are
-                // derived, we need to keep track of the inverses of these 
-                // resistances. The sums of the inverses of the resistances is
-                // what the matrix will be populated with. Negative polarity 
-                // nodes will have their inverse sum negated.
-                kcl(row, term.pos) += 1.0 / term.res;
-                kcl(row, term.neg) += -1.0 / term.res;
+            // Normally, when looking at a non-GROUND node, the nodes are examined
+            // and excludedNodes is properly populated if the program runs across
+            // any voltage sources. That is done here.
+            for (auto connection : node.connections) {
+                if (std::get<2>(connection) == Unit::VOLT) {
+                    excludedNodes.push_back(std::get<0>(connection));
+                }
             }
 
             row++;
+        } else {
+            bool consider = true;
+            for (Node* excludedNode : excludedNodes) {
+                if (excludedNode->id == node.id)
+                    consider = false;
+            }
+
+            if (consider) {
+                for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
+                    // If the KCL term represents current flowing into the node,
+                    // the term is on the right hand side of the "equation", and
+                    // all term coefficients stay as they are. If the term represents
+                    // current flowing out of the node, the term is on the left side
+                    // of the "equation" and must be moved over, so the coefficients
+                    // will be negated.
+                    bool out;
+
+                    if (term.neg == node.id)
+                        out = false;
+                    else if (term.pos == node.id)
+                        out = true;
+
+                    // The term.res (aka resistance of the resistor) corresponds to a 
+                    // particular node. By the nature of the way KCL equations are
+                    // derived, we need to keep track of the inverses of these 
+                    // resistances. The sums of the inverses of the resistances is
+                    // what the matrix will be populated with. Negative polarity 
+                    // nodes will have their inverse sum negated.
+                    kcl(row, term.pos) += 1.0 / term.res * (out ? -1.0 : 1.0);
+                    kcl(row, term.neg) += -1.0 / term.res * (out ? -1.0 : 1.0);
+                }
+
+                row++;
+            }
         }
     }
 
@@ -99,7 +136,7 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     for (Node node : reducedNodes) {
         bool consider = true;
         for (Node* excludedNode : excludedNodes) {
-            if (*excludedNode == node)
+            if (excludedNode->id == node.id)
                 consider = false;
         }
 
@@ -139,10 +176,10 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         }
     }
 
-    std::cout << "KCL Matrix:\n" << kcl << "\n\n";
-    std::cout << "Coeff Matrix:\n" << coeff << "\n\n";
-    std::cout << "KCL Determinant:\n" << det(kcl) << "\n\n";
-    std::cout << "Solution Matrix:\n" << kcl.i() * coeff << "\n\n";
+    //std::cout << "KCL Matrix:\n" << kcl << "\n\n";
+    //std::cout << "Coeff Matrix:\n" << coeff << "\n\n";
+    //std::cout << "KCL Determinant:\n" << det(kcl) << "\n\n";
+    //std::cout << "Solution Matrix:\n" << kcl.i() * coeff << "\n\n";
 
     return true;
 }

@@ -66,7 +66,7 @@ std::vector<KCLTerm> Node::getTerms(const Node* callingNode, std::vector<Node*>&
         // the call was made recursively (ie: sub-top-level), the callingNode will be 
         // populated with the caller. Only get the terms of the connected node if it is
         // not the caller (otherwise, it would form an infinite loop).
-        if (std::get<2>(connection) == Unit::VOLT && (callingNode == nullptr || std::get<0>(connection) != callingNode)) {
+        if (std::get<2>(connection) == Unit::VOLT && (callingNode == nullptr || std::get<0>(connection)->id != callingNode->id)) {
             excludedNodes.push_back(std::get<0>(connection));
             std::vector<KCLTerm> newTerms = std::get<0>(connection)->getTerms(this, excludedNodes);
             terms.insert(terms.end(), newTerms.begin(), newTerms.end());
