@@ -29,6 +29,7 @@ struct Node {
     double voltage;
     std::vector< std::tuple<Node*, double, Unit, Polarity> > connections;
 
+    Node();
     Node(int);
 
     void addConnection(Node*, double, Unit, Polarity);

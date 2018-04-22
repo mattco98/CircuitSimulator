@@ -38,12 +38,8 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     }
 
     std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
-    std::vector<Node> nodes = convertGridNodesToNodes(gridNodes);
+    std::vector<Node> nodes = convertGridNodesToNodes(&gridNodes);
     std::vector<Node> reducedNodes = reduceNodes(nodes);
-
-    //for (Node node : reducedNodes) {
-    //    node.print(std::cout);
-    //}
 
     // Begin the process of populating a matrix to solve for the 
     // node voltages
@@ -183,9 +179,46 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         nodes[i].voltage = solution.at(i, 0);
     }
 
-    for (int i = 0; i < nodes.size(); i++) {
-        std::cout << "Node " << i << ":\n";
-        std::cout << "\tVoltage: " << nodes[i].voltage << "\n\n";
+    // Start the process of turning node voltage into component voltages and currents.
+    // On first pass, the current and voltage of every resistor is calculated.
+    for (Component* component : components) {
+        if (component->getType() == &ComponentTypes::RESISTOR) {
+            std::vector<GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
+            std::vector<Node> compNodes(2);
+
+            for (Node tNode : nodes) {
+                if (tNode.id == compGridNodes[0].id)
+                    compNodes[0] = tNode;
+                else if (tNode.id == compGridNodes[1].id)
+                    compNodes[1] = tNode;
+            }
+
+            // compNodes[0] will always be the positive node, and compNodes[1] the negative
+            double voltage = compNodes[0].voltage - compNodes[1].voltage;
+            double current = voltage / component->getValue();
+
+            component->setVoltageDrop(voltage);
+            component->setAmpsThrough(current);
+        }
+    }
+
+    // The voltage sources are handled second, as, in order to find the current through
+    // them, the current through all connected resistors must be known.
+    for (Component* component : components) {
+        if (component->getType() == &ComponentTypes::VSRC) {
+            // Voltage drop across a vsrc is just its value
+            component->setVoltageDrop(component->getValue());
+
+            std::vector<Component*> resistors = getVoltageInputs(component);
+
+            double currentSum = 0;
+
+            for (Component* resistor : resistors) {
+                currentSum += resistor->getAmpsThrough();
+            }
+
+            component->setAmpsThrough(currentSum);
+        }
     }
 
     return true;
@@ -269,27 +302,27 @@ std::vector<GridSpot*> Calculator::getNeighboorSpots(GridSpot* spot) {
     return neighboors;
 }
 
-std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode> gridNodes) {
+std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode>* gridNodes) {
     std::vector<Node> nodes;
 
     // Initialize Nodes
-    for (int i = 0; i < gridNodes.size(); i++) {
+    for (int i = 0; i < gridNodes->size(); i++) {
         Node node(i);
-        gridNodes[i].id = i;
+        gridNodes->at(i).id = i;
         nodes.push_back(node);
     }
 
     // Form Node connections
     for (int i = 0; i < nodes.size(); i++) {
         // List of gridNode components
-        std::vector<Component*> components = gridNodes[i].getNonWireComponents();
+        std::vector<Component*> components = gridNodes->at(i).getNonWireComponents();
 
         for (Component* component : components) {
             GridNode other;
 
             // Find the other gridNode this component is connected to
-            for (GridNode gridNode : gridNodes) {
-                if (gridNode != gridNodes[i]) {
+            for (GridNode gridNode : *gridNodes) {
+                if (gridNode != gridNodes->at(i)) {
                     for (Component* otherComponent : gridNode.getNonWireComponents()) {
                         if (otherComponent == component) {
                             other = gridNode;
@@ -404,4 +437,56 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
             node2->addConnection(node1, eqOhms, Unit::OHM, Polarity::NEGATIVE);
         }
     }
+}
+
+std::vector<GridNode> Calculator::getGridNodesFromComponent(std::vector<GridNode> gridNodes, Component* component) {
+    std::vector<GridNode> nodes;
+
+    nodes.push_back(getGridNodeFromSpot(gridNodes, component->getPositive()));
+    nodes.push_back(getGridNodeFromSpot(gridNodes, component->getNegative()));
+
+    return nodes;
+}
+
+GridNode Calculator::getGridNodeFromSpot(std::vector<GridNode> gridNodes, GridSpot* spot) {
+    GridNode node;
+
+    for (GridNode gridNode : gridNodes) {
+        for (GridSpot* gridSpot : gridNode.spots) {
+            if (gridSpot == spot) {
+                node = gridNode;
+            }
+        }
+    }
+
+    return node;
+}
+
+std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::vector<Component*> resistors) {
+    std::vector<Component*> posComps = component->getPositive()->components,
+                            negComps = component->getNegative()->components,
+                            connectedComponents;
+    connectedComponents.reserve(posComps.size() + negComps.size());
+    connectedComponents.insert(connectedComponents.begin(), posComps.begin(), posComps.end());
+    connectedComponents.insert(connectedComponents.begin(), negComps.begin(), negComps.end());
+
+    for (Component* comp : connectedComponents) {
+        if (comp->getType() == &ComponentTypes::RESISTOR && comp->getAmpsThrough() > 0.0 &&
+            (comp->getNegative() == component->getNegative() || comp->getNegative() == component->getPositive())) {
+            bool added = false;
+
+            for (Component* resistor : resistors) {
+                if (comp == resistor)
+                    added = true;
+            }
+
+            if (!added)
+                resistors.push_back(comp);
+        } else if (comp->getType() == &ComponentTypes::VSRC && comp != component) {
+            std::vector<Component*> newComps = getVoltageInputs(comp, resistors);
+            resistors.insert(resistors.end(), newComps.begin(), newComps.end());
+        }
+    }
+
+    return resistors;
 }

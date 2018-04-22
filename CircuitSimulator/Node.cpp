@@ -1,5 +1,8 @@
 #include "Node.h"
 
+Node::Node() {
+}
+
 Node::Node(int id_) {
     id = id_;
 }

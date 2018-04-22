@@ -17,9 +17,15 @@ namespace Calculator {
 
     std::vector<GridSpot*> getNeighboorSpots(GridSpot*);
 
-    std::vector<Node> convertGridNodesToNodes(std::vector<GridNode>);
+    std::vector<Node> convertGridNodesToNodes(std::vector<GridNode>*);
 
     std::vector<Node> reduceNodes(std::vector<Node>);
 
     void reduceNodeConnection(Node*, Node*);
+
+    std::vector<GridNode> getGridNodesFromComponent(std::vector<GridNode>, Component*);
+
+    GridNode getGridNodeFromSpot(std::vector<GridNode>, GridSpot*);
+
+    std::vector<Component*> getVoltageInputs(Component*, std::vector<Component*> = std::vector<Component*>());
 }
