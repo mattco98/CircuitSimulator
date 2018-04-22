@@ -1,5 +1,4 @@
-﻿#include <iostream>
-#include <iomanip>
+﻿#include <iomanip>
 #include <string>
 #include <cmath>
 #include <regex>
@@ -8,10 +7,6 @@
 #include "ComponentTypes.h"
 #include "GuiHelper.h"
 #include "Calculator.h"
-
-// TODO: Debug
-using std::cout;
-using std::endl;
 
 ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style) :
 	// Initialize window and grid
@@ -231,7 +226,6 @@ void ApplicationManager::drawGui() {
 		// Draw grid spots
 		for (auto row : grid.getSpots()) {
             for (GridSpot* spot : row) {
-                cout << "(" << spot->x << ", " << spot->y << ")\n";
                 sf::CircleShape spotCircle(3.0f);
                 spotCircle.setFillColor(GuiHelper::applyAlpha(sf::Color::Red, alpha));
                 spotCircle.setPosition(float(spot->x - 3), float(spot->y - 3));

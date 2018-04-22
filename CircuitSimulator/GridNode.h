@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include "GridSpot.h"
 
@@ -12,7 +11,4 @@ struct GridNode {
 
     inline bool operator ==(GridNode other) { return id == other.id; }
     inline bool operator !=(GridNode other) { return id != other.id; }
-
-    // TODO: DEBUG
-    void print(std::ostream&) const;
 };

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <cmath>
 #include "Grid.h"
 #include "Config.h"

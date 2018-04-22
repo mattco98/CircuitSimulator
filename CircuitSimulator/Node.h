@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <tuple>
 
@@ -40,6 +39,4 @@ struct Node {
     std::vector<KCLTerm> getTerms(const Node*, std::vector<Node*>&) const;
 
     bool operator ==(Node other) const;
-
-    void print(std::ostream&) const;
 };

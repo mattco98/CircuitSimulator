@@ -46,18 +46,6 @@ std::vector< std::tuple<Node*, double, Unit, Polarity> > Node::getConnectionsToN
     return connects;
 }
 
-void Node::print(std::ostream& stream) const {
-    stream << "Node " << id << "\n";
-    for (int i = 0; i < connections.size(); i++) {
-        stream << "\tConnection " << i << ":\n";
-        auto connection = connections[i];
-        stream << "\t\tOther Node: " << std::get<0>(connection)->id << std::endl;
-        stream << "\t\tConnection Type: " << (std::get<2>(connection) == Unit::OHM ? "Ohm" : "Volt") << std::endl;
-        stream << "\t\tConnection Value: " << std::get<1>(connection) << std::endl;
-        stream << "\t\tConnection Polarity: " << (std::get<3>(connection) == Polarity::POSITIVE ? "Positive" : std::get<3>(connection) == Polarity::NEGATIVE ? "Negative" : "Unknown") << "\n\n";
-    }
-}
-
 std::vector<KCLTerm> Node::getTerms(const Node* callingNode, std::vector<Node*>& excludedNodes) const {
     std::vector<KCLTerm> terms;
     for (auto connection : connections) {

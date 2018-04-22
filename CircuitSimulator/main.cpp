@@ -8,7 +8,6 @@
 	Date Last Modified:     3/23/2018
 */
 
-#include <iostream>  // TODO: Debug
 #include "ApplicationManager.h"
 #include "Config.h"
 
