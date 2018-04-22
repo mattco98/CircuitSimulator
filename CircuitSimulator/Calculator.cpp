@@ -35,17 +35,116 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         }
 
         return false;
-    } else {
-        std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
-        std::vector<Node> nodes = convertGridNodesToNodes(gridNodes);
-        std::vector<Node> reducedNodes = reduceNodes(nodes);
+    }
 
-        for (Node node : reducedNodes) {
-            node.print(std::cout);
+    std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
+    std::vector<Node> nodes = convertGridNodesToNodes(gridNodes);
+    std::vector<Node> reducedNodes = reduceNodes(nodes);
+
+    //for (Node node : reducedNodes) {
+    //    node.print(std::cout);
+    //}
+
+    // Start calculating KCL matrices
+
+    mat kcl(nodes.size(), nodes.size());
+    mat coeff(nodes.size(), 1);
+
+    kcl.fill(0.0);
+    coeff.fill(0.0);
+
+    // There are exactly "nodes.size()" number of equations. Since some equations
+    // come from doing KCL at nodes and some come from voltage source relations,
+    // the current row of the matrix that is being populated must be tracked,
+    // especially after this initial loop has completed.
+    int row = 0;
+
+    // Every voltage source has two nodes attached to it, however only one
+    // KCL equation can be derived from these two. To avoid populating the 
+    // matrix with duplicate roww, the nodes that get considered as a 
+    // consequence of considering the current node must be tracked and
+    // excluded from the following process
+    std::vector<Node*> excludedNodes;
+
+    // Loop through the nodes and get every possible KCL equation
+    for (Node node : reducedNodes) {
+        bool consider = true;
+        for (Node* excludedNode : excludedNodes) {
+            if (*excludedNode == node)
+                consider = false;
         }
 
-        return true;
+        if (consider) {
+            for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
+                // The term.res (aka resistance of the resistor) corresponds to a 
+                // particular node. By the nature of the way KCL equations are
+                // derived, we need to keep track of the inverses of these 
+                // resistances. The sums of the inverses of the resistances is
+                // what the matrix will be populated with. Negative polarity 
+                // nodes will have their inverse sum negated.
+                kcl(row, term.pos) += 1.0 / term.res;
+                kcl(row, term.neg) += -1.0 / term.res;
+            }
+
+            row++;
+        }
     }
+
+    // Loop through the nodes again, this time looking specifically for voltage
+    // sources. Each voltage source provides a direct voltage relationship 
+    // between its two nodes, and they are added to the matrices here. The
+    // excluded nodes vector is re-used.
+    excludedNodes.clear();
+
+    for (Node node : reducedNodes) {
+        bool consider = true;
+        for (Node* excludedNode : excludedNodes) {
+            if (*excludedNode == node)
+                consider = false;
+        }
+
+        if (consider) {
+            for (auto connection : node.connections) {
+                if (std::get<2>(connection) == Unit::VOLT) {
+                    int pos,
+                        neg;
+
+                    if (std::get<3>(connection) == Polarity::POSITIVE) {
+                        pos = node.id;
+                        neg = std::get<0>(connection)->id;
+                    } else {
+                        pos = std::get<0>(connection)->id;
+                        neg = node.id;
+                    }
+
+                    // In a direct voltage node equation, the relationship
+                    // looks something along the lines of NODE1 - NODE2 = X,
+                    // where NODE1 is the positive voltage terminal, NODE2
+                    // is the negative voltage terminal, and X is the value
+                    // of the voltage source. In a matrix, this means that
+                    // the positive node has a weight of 1, the negative node
+                    // a weight of -1, and an additional weight in the
+                    // coefficient matrix.
+                    kcl(row, pos) = 1.0;
+                    kcl(row, neg) = -1.0;
+                    coeff(row) = std::get<1>(connection);
+
+                    // Exclude the other node connected to this voltage source
+                    // to avoid duplicate matrix entries.
+                    excludedNodes.push_back(std::get<0>(connection));
+
+                    row++;
+                }
+            }
+        }
+    }
+
+    std::cout << "KCL Matrix:\n" << kcl << "\n\n";
+    std::cout << "Coeff Matrix:\n" << coeff << "\n\n";
+    std::cout << "KCL Determinant:\n" << det(kcl) << "\n\n";
+    std::cout << "Solution Matrix:\n" << kcl.i() * coeff << "\n\n";
+
+    return true;
 }
 
 std::vector<GridNode> Calculator::getGridNodes(std::vector<GridSpot*> spots) {
@@ -174,7 +273,7 @@ std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode> grid
             nodes[i].addConnection(
                 &nodes[other.id],
                 component->getValue(),
-                component->getType() == &ComponentTypes::RESISTOR ? ValueType::OHM : ValueType::VOLT,
+                component->getType() == &ComponentTypes::RESISTOR ? Unit::OHM : Unit::VOLT,
                 pol
             );
         }
@@ -220,7 +319,7 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
         int i = 0;
         while (node1Tuples.size() > 0 && i < node1Tuples.size()) {
             auto t1 = node1Tuples[i];
-            if (std::get<2>(t1) == ValueType::OHM) {
+            if (std::get<2>(t1) == Unit::OHM) {
                 eqOhms += 1.0 / std::get<1>(t1);
 
                 // Remove resistor connections. Will be replaced later with
@@ -240,7 +339,7 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
 
                 node1Tuples = node1->getConnectionsToNode(node2);
                 node2Tuples = node2->getConnectionsToNode(node1);
-            } else if (std::get<2>(t1) == ValueType::VOLT) {
+            } else if (std::get<2>(t1) == Unit::VOLT) {
                 numVolts++;
                 i++;
             }
@@ -257,8 +356,8 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
 
             // Resistor polarity is arbitrary, however it is important that 
             // the polarities be opposite.
-            node1->addConnection(node2, eqOhms, ValueType::OHM, Polarity::POSITIVE);
-            node2->addConnection(node1, eqOhms, ValueType::OHM, Polarity::NEGATIVE);
+            node1->addConnection(node2, eqOhms, Unit::OHM, Polarity::POSITIVE);
+            node2->addConnection(node1, eqOhms, Unit::OHM, Polarity::NEGATIVE);
         }
     }
 }

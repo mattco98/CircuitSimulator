@@ -31,6 +31,18 @@
     <Filter Include="Source Files\types">
       <UniqueIdentifier>{7540f8f7-5427-4eca-934f-b6326e0e7c98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\types\components">
+      <UniqueIdentifier>{80aff3b6-ebe8-44e2-b67b-93f19bec1046}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\types\nodes">
+      <UniqueIdentifier>{b8b25944-2906-4d25-b25a-13cc2c098a6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\types\components">
+      <UniqueIdentifier>{607c5415-39e5-4e24-b095-634b5d034a38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\types\nodes">
+      <UniqueIdentifier>{eca2324f-8305-47e4-b6fd-1b99f084aac1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -51,23 +63,23 @@
     <ClCompile Include="GuiHelper.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source Files\types</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentTypes.cpp">
-      <Filter>Source Files\types</Filter>
-    </ClCompile>
     <ClCompile Include="GridSpot.cpp">
       <Filter>Source Files\types</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentType.cpp">
-      <Filter>Source Files\types</Filter>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source Files\types\components</Filter>
     </ClCompile>
-    <ClCompile Include="GridNode.cpp">
-      <Filter>Source Files\types</Filter>
+    <ClCompile Include="ComponentType.cpp">
+      <Filter>Source Files\types\components</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentTypes.cpp">
+      <Filter>Source Files\types\components</Filter>
     </ClCompile>
     <ClCompile Include="Node.cpp">
-      <Filter>Source Files\types</Filter>
+      <Filter>Source Files\types\nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="GridNode.cpp">
+      <Filter>Source Files\types\nodes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,14 +92,8 @@
     <ClInclude Include="Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Header Files\types</Filter>
-    </ClInclude>
     <ClInclude Include="Calculator.h">
       <Filter>Header Files\state</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentTypes.h">
-      <Filter>Header Files\types</Filter>
     </ClInclude>
     <ClInclude Include="GridSpot.h">
       <Filter>Header Files\types</Filter>
@@ -95,14 +101,20 @@
     <ClInclude Include="GuiHelper.h">
       <Filter>Header Files\gui</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentType.h">
-      <Filter>Header Files\types</Filter>
+    <ClInclude Include="Component.h">
+      <Filter>Header Files\types\components</Filter>
     </ClInclude>
-    <ClInclude Include="GridNode.h">
-      <Filter>Header Files\types</Filter>
+    <ClInclude Include="ComponentType.h">
+      <Filter>Header Files\types\components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentTypes.h">
+      <Filter>Header Files\types\components</Filter>
     </ClInclude>
     <ClInclude Include="Node.h">
-      <Filter>Header Files\types</Filter>
+      <Filter>Header Files\types\nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="GridNode.h">
+      <Filter>Header Files\types\nodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
