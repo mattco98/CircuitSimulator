@@ -49,3 +49,4 @@ extern const sf::Text::Style MENU_DEFAULT_STYLE;
 
 // Components
 extern const sf::Color COMPONENT_COLOR;
+extern const sf::Color SELECTED_COMPONENT_COLOR;

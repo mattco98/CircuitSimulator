@@ -51,4 +51,5 @@ const sf::Font DEFAULT_FONT = getDefaultFont();
 const unsigned int DEFAULT_FONT_SIZE = 18;
 
 // Components
-const sf::Color COMPONENT_COLOR(64, 224, 208);
+const sf::Color COMPONENT_COLOR(170, 170, 170);
+const sf::Color SELECTED_COMPONENT_COLOR(64, 224, 208);

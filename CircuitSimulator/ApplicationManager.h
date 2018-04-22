@@ -73,4 +73,5 @@ class ApplicationManager {
 		// Helper Methods //
 		////////////////////
         void setSelectedComponentValue(std::string);
+        void recalculate();
 };

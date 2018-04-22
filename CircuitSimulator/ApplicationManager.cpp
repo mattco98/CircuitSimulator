@@ -1,7 +1,9 @@
 ﻿#include <iostream>
+#include <iomanip>
 #include <string>
 #include <cmath>
 #include <regex>
+#include <sstream>
 #include "ApplicationManager.h"
 #include "ComponentTypes.h"
 #include "GuiHelper.h"
@@ -134,6 +136,8 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             Calculator::calculate(grid.getSpots(), grid.getComponents());
             break;
 	}
+
+    recalculate();
 }
 
 void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
@@ -162,6 +166,8 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
             mode = SELECTED;
         }
     }
+
+    recalculate();
 }
 
 void ApplicationManager::handleResized(sf::Event event) {
@@ -406,8 +412,18 @@ void ApplicationManager::drawInfoPanel() {
             ampsThroughStr;
 
         titleStr = "Selected Component Type:\n\t" + selectedComponent->getType()->getName();
-        voltageDropStr = "Voltage difference:\n\t" + std::to_string(selectedComponent->getVoltageDrop());
-        ampsThroughStr = "Current through:\n\t" + std::to_string(selectedComponent->getAmpsThrough());
+
+        std::stringstream ss;
+
+        ss << "Voltage Difference:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getVoltageDrop() << " V";
+        voltageDropStr = ss.str();
+        // Clear the string stream
+        ss.str(std::string());
+
+        ss << "Current Through:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getAmpsThrough() << " A";
+        ampsThroughStr = ss.str();
+        // Clear the string stream
+        ss.str(std::string());
 
         title.setFont(DEFAULT_FONT);
         voltageDrop.setFont(DEFAULT_FONT);
@@ -434,18 +450,18 @@ void ApplicationManager::drawInfoPanel() {
         window.draw(ampsThrough);
 
         if (selectedComponent->getType() != &ComponentTypes::WIRE) {
-            std::string valueText = "Value:\n\t" + std::to_string(selectedComponent->getValue());
+            ss << "Value:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getValue();
 
             if (selectedComponent->getType() == &ComponentTypes::RESISTOR)
-                valueText += " Ohms";
+                ss << " Ohms";
             else
-                valueText += " V";
+                ss << " V";
 
             sf::Text value;
             value.setFont(DEFAULT_FONT);
             value.setCharacterSize(DEFAULT_FONT_SIZE - 2);
             value.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
-            value.setString(valueText);
+            value.setString(ss.str());
             value.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 690));
 
             window.draw(value);
@@ -502,7 +518,11 @@ void ApplicationManager::drawWire(Component* component) {
 	double degrees = 180 + (180 / 3.14159165) * atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
 
 	sf::RectangleShape rect(sf::Vector2f(float(length), 2.0f));
-    sf::Color color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+    sf::Color color;
+    if (component == selectedComponent)
+        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+    else
+        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
 	rect.setFillColor(color);
 	rect.setRotation(float(degrees));
 	rect.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -522,7 +542,11 @@ void ApplicationManager::drawResistor(Component* component) {
 						   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
 
 	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
-    sf::Color color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+    sf::Color color;
+    if (component == selectedComponent)
+        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+    else
+        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
 	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -555,7 +579,11 @@ void ApplicationManager::drawVSrc(Component* component) {
 		                   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
 
 	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
-    sf::Color color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+    sf::Color color;
+    if (component == selectedComponent)
+        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+    else
+        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
 	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -602,4 +630,8 @@ void ApplicationManager::setSelectedComponentValue(std::string input) {
 
         selectedComponent->setValue(val);
     }
+}
+
+void ApplicationManager::recalculate() {
+    Calculator::calculate(grid.getSpots(), grid.getComponents());
 }
