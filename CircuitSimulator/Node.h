@@ -21,10 +21,12 @@ struct KCLTerm {
     int pos,
         neg;
     double res;
+    bool out;
 };
 
 struct Node {
     int id;
+    double voltage;
     std::vector< std::tuple<Node*, double, Unit, Polarity> > connections;
 
     Node(int);

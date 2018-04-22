@@ -71,7 +71,6 @@ std::vector<KCLTerm> Node::getTerms(const Node* callingNode, std::vector<Node*>&
             std::vector<KCLTerm> newTerms = std::get<0>(connection)->getTerms(this, excludedNodes);
             terms.insert(terms.end(), newTerms.begin(), newTerms.end());
         } else if (std::get<2>(connection) == Unit::OHM) {
-
             const Node* pos;
             const Node* neg;
 
@@ -83,7 +82,7 @@ std::vector<KCLTerm> Node::getTerms(const Node* callingNode, std::vector<Node*>&
                 neg = this;
             }
 
-            terms.push_back({ pos->id, neg->id, std::get<1>(connection) });
+            terms.push_back({ pos->id, neg->id, std::get<1>(connection), pos->id == id});
         }
     }
 

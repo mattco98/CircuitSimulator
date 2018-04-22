@@ -99,27 +99,14 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
             if (consider) {
                 for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
-                    // If the KCL term represents current flowing into the node,
-                    // the term is on the right hand side of the "equation", and
-                    // all term coefficients stay as they are. If the term represents
-                    // current flowing out of the node, the term is on the left side
-                    // of the "equation" and must be moved over, so the coefficients
-                    // will be negated.
-                    bool out;
-
-                    if (term.neg == node.id)
-                        out = false;
-                    else if (term.pos == node.id)
-                        out = true;
-
                     // The term.res (aka resistance of the resistor) corresponds to a 
                     // particular node. By the nature of the way KCL equations are
                     // derived, we need to keep track of the inverses of these 
                     // resistances. The sums of the inverses of the resistances is
                     // what the matrix will be populated with. Negative polarity 
                     // nodes will have their inverse sum negated.
-                    kcl(row, term.pos) += 1.0 / term.res * (out ? -1.0 : 1.0);
-                    kcl(row, term.neg) += -1.0 / term.res * (out ? -1.0 : 1.0);
+                    kcl(row, term.pos) += 1.0 / term.res * (term.out ? -1.0 : 1.0);
+                    kcl(row, term.neg) += -1.0 / term.res * (term.out ? -1.0 : 1.0);
                 }
 
                 row++;
@@ -176,10 +163,30 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         }
     }
 
-    //std::cout << "KCL Matrix:\n" << kcl << "\n\n";
-    //std::cout << "Coeff Matrix:\n" << coeff << "\n\n";
-    //std::cout << "KCL Determinant:\n" << det(kcl) << "\n\n";
-    //std::cout << "Solution Matrix:\n" << kcl.i() * coeff << "\n\n";
+    // Multiply the inverse kcl matrix by the coeff matrix to get the
+    // solution voltages.
+    mat solution = kcl.i() * coeff;
+
+    // Because our grounding point was arbitrary, some voltage may be negative.
+    // This is easily fixed by subtracting the lowest value from all solution
+    // matrix entries
+    double min = solution.min();
+
+    // Subtract min value from each element with a simple lambda function.
+    solution.for_each([min](mat::elem_type& val) { val -= min; });
+
+    // Set the node voltage from the solution matrix. Because the matrices were
+    // specifically ordered to match the node ids, the values in the first 
+    // column correspond to the first node, the second column the second node,
+    // etc.
+    for (int i = 0; i < solution.n_rows; i++) {
+        nodes[i].voltage = solution.at(i, 0);
+    }
+
+    for (int i = 0; i < nodes.size(); i++) {
+        std::cout << "Node " << i << ":\n";
+        std::cout << "\tVoltage: " << nodes[i].voltage << "\n\n";
+    }
 
     return true;
 }
