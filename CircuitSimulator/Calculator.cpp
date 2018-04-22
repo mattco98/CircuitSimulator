@@ -3,8 +3,6 @@
 #include "Calculator.h"
 #include "GridNode.h"
 
-using namespace arma;
-
 bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     bool isCompleteCircuit = true;
     std::vector<GridSpot*> populatedSpots;
@@ -44,8 +42,8 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     // Begin the process of populating a matrix to solve for the 
     // node voltages
 
-    mat kcl(nodes.size(), nodes.size());
-    mat coeff(nodes.size(), 1);
+    arma::mat kcl(nodes.size(), nodes.size());
+    arma::mat coeff(nodes.size(), 1);
 
     kcl.fill(0.0);
     coeff.fill(0.0);
@@ -161,7 +159,7 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
     // Multiply the inverse kcl matrix by the coeff matrix to get the
     // solution voltages.
-    mat solution = kcl.i() * coeff;
+    arma::mat solution = kcl.i() * coeff;
 
     // Because our grounding point was arbitrary, some voltage may be negative.
     // This is easily fixed by subtracting the lowest value from all solution
@@ -169,7 +167,7 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     double min = solution.min();
 
     // Subtract min value from each element with a simple lambda function.
-    solution.for_each([min](mat::elem_type& val) { val -= min; });
+    solution.for_each([min](arma::mat::elem_type& val) { val -= min; });
 
     // Set the node voltage from the solution matrix. Because the matrices were
     // specifically ordered to match the node ids, the values in the first 
