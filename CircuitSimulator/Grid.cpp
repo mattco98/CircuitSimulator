@@ -30,6 +30,24 @@ Grid::Grid() {
     }
 }
 
+std::vector<Component*> Grid::getComponents() const {
+    return components;
+};
+
+std::vector< std::vector<GridSpot*> > Grid::getSpots() const {
+    return spots;
+};
+
+void Grid::clearComponents() {
+    components.clear();
+
+    for (std::vector<GridSpot*> row : spots) {
+        for (GridSpot* spot : row) {
+            spot->components.clear();
+        }
+    }
+}
+
 bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const {
     int numSpotsHorz = width / SPOT_SPACING;
     int numSpotsVert = height / SPOT_SPACING;

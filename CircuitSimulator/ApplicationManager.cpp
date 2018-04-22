@@ -72,7 +72,7 @@ void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
     if (mode == TYPING) {
         char ch = char(event.unicode);
 
-        if (ch == 't') {
+        if (ch == 's') {
             return;
         } else if (ch == 8) {
             input = input.substr(0, input.size() - 1);
@@ -124,10 +124,9 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             break;
 		case sf::Keyboard::C:
 			grid.clearComponents();
-			grid.clearComponents();
 			break;
-        case sf::Keyboard::T:
-            if (mode == SELECTED) {
+        case sf::Keyboard::S:
+            if (mode == SELECTED && selectedComponent->getType() != &ComponentTypes::WIRE) {
                 mode = TYPING;
                 
             }
@@ -362,7 +361,7 @@ void ApplicationManager::drawInstructionPanel() {
             titleStr += "Component Selected";
             break;
         case TYPING:
-            titleStr += "Text Input";
+            titleStr += "Setting Value";
     }
 
     title.setString(titleStr);
@@ -375,24 +374,34 @@ void ApplicationManager::drawInstructionPanel() {
     info.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
     info.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 250));
 
+    std::string infoStr;
+
     // Draw different information text depending on the mode
     if (mode == PLACING || mode == PLACING_COMPONENT) {
-        info.setString("In placing mode, you can\nplace different components\non the grid.\n\n"
-                       "Available Actions:\n   Left click:\n\t  Place a component\n   Space:\n\t  Selection mode");
+        infoStr = "Place components on the\ngrid.\n\nAvailable Actions:\n   "
+                  "Up/Down Arrow:\n\t  Change component\n\t  type\n   Left "
+                  "click:\n\t  Place a component\n   Space:\n\t  Selection "
+                  "Components";
     } else if (mode == SELECTING) {
-        info.setString("In selection mode, you can\nselect a component in\norder to view its "
-                       "info or\nchange its properties.\n\n"
-                       "Available Actions:\n   Right click:\n\t   Select the\n\t   component under the\n\t   cursor\n"
-                       "   P:\n\t   Placing mode");
+        infoStr = "Select a component in\norder to view its info or\nchange "
+                  "its properties.\n\nAvailable Actions:\n   Right click:\n\t"
+                  "   Select the\n\t   component under the\n\t   cursor\n   "
+                  "P:\n\t   Place Components";
     } else if (mode == SELECTED) {
-        info.setString("In selection mode, you can\nselect a component in\norder to view its "
-                       "info or\nchange its properties.\n\n"
-                       "Available Actions:\n   Right click:\n\t   Select the\n\t   component under the\n\t   cursor\n"
-                       "   P:\n\t   Placing mode\n   T:\n\t   Text entry mode");
+        infoStr = "Select a component in\norder to view its info or\nchange "
+                  "its properties.\n\nAvailable Actions:\n   Right click:\n\t"
+                  "   Select the\n\t   component under the\n\t   cursor\n   "
+                  "P:\n\t   Place Components";
+        if (selectedComponent->getType() != &ComponentTypes::WIRE) {
+            infoStr += "\n   S:\n\t   Set component value";
+        }
     } else if (mode == TYPING) {
-        info.setString("In text entry mode, you\ncan enter the component\nvalue from your keyboard.\nStart typing, and your\ninput "
-                       "will be shown below.\n\nCurrent Input:\n   " + input);
+        infoStr = "Enter the component\nvalue from your keyboard.\nStart "
+                  "typing, and your\ninput will be shown below.\n\nCurrent "
+                  "Input:\n   " + input;
     }
+
+    info.setString(infoStr);
 
     window.draw(info);
 }

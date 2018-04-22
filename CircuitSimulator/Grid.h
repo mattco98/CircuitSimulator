@@ -16,9 +16,9 @@ class Grid {
 	public:
 		Grid();
 
-		inline std::vector<Component*> getComponents() const { return components; };
-		inline std::vector< std::vector<GridSpot*> > getSpots() const { return spots; };
-		void clearComponents() { components.clear(); };
+		std::vector<Component*> getComponents() const;
+		std::vector< std::vector<GridSpot*> > getSpots() const;
+        void clearComponents();
 		void addComponent(Component* component);
 		bool getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const;
         bool getComponentUnderPosition(sf::Vector2i pos, Component*&) const;
