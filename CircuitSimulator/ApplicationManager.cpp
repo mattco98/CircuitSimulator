@@ -109,16 +109,11 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             placingComponentType = ComponentTypes::getType(i);
 			break;
         case sf::Keyboard::Space:
-            if (mode == PLACING || mode == SELECTED) {
+            if (mode == PLACING) 
                 mode = SELECTING;
-                selectedComponent = nullptr;
-            }
-            break;
-        case sf::Keyboard::P:
-            if (mode == SELECTING || mode == SELECTED) {
+            else if (mode == SELECTING || mode == SELECTED)
                 mode = PLACING;
-                selectedComponent = nullptr;
-            }
+            selectedComponent = nullptr;
             break;
 		case sf::Keyboard::C:
 			grid.clearComponents();
