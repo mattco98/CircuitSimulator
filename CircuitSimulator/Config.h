@@ -49,4 +49,5 @@ extern const unsigned int DEFAULT_FONT_SIZE;
 
 // Components
 extern const sf::Color COMPONENT_COLOR;
-extern const sf::Color SELECTED_COMPONENT_COLOR;
+extern const sf::Color COMPONENT_HOVER_COLOR;
+extern const sf::Color COMPONENT_SELECTED_COLOR;

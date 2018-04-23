@@ -175,16 +175,27 @@ void ApplicationManager::handleClosed() {
 void ApplicationManager::draw() {
 	drawGui();
 
+    Component* comp;
+    sf::Vector2i mousePos(sf::Mouse::getPosition(window));
+    grid.getComponentUnderPosition(mousePos, comp);
+    sf::Color color;
+
 	for (Component* component : grid.getComponents()) {
-		drawComponent(component);
+        if ((mode == SELECTING || mode == SELECTED) && component == selectedComponent)
+            color = COMPONENT_SELECTED_COLOR;
+        else if ((mode == SELECTING || mode == SELECTED) && component == comp)
+            color = COMPONENT_HOVER_COLOR;
+        else
+            color = COMPONENT_COLOR;
+        
+        drawComponent(component, color);
 	}
 
     if (mode == PLACING_COMPONENT) {
-        Component* hover = placingComponent;
         GridSpot* spot;
         if (grid.getNearestSpot(sf::Mouse::getPosition(window), &spot)) {
-            hover->setNegative(&spot);
-            drawComponent(hover);
+            placingComponent->setNegative(&spot);
+            drawComponent(placingComponent);
         }
     }
 }
@@ -234,29 +245,11 @@ void ApplicationManager::drawGui() {
 
     // Draw border around grid
     GuiHelper::drawRectangleHollow(window,
-                                   { float(GRID_LEFT_OFFSET), float(GRID_TOP_OFFSET) },
-                                   { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
-                                   { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
-                                   { float(GRID_LEFT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
-                                   BORDER_COLOR);
-
-	// Draw dot on nearest grid spot
-	GridSpot* nearestSpot;
-
-	sf::Vector2i mousePos(sf::Mouse::getPosition(window));
-	if (!grid.getNearestSpot(mousePos, &nearestSpot)) {
-		return;
-	}
-
-    if (mode == PLACING) {
-        sf::CircleShape mouseCircle(5.0f);
-        mouseCircle.setFillColor(sf::Color(74, 77, 82));
-        mouseCircle.setOutlineColor(sf::Color(47, 49, 54));
-        mouseCircle.setOutlineThickness(1.0f);
-        mouseCircle.setPosition(float(nearestSpot->x - 7), float(nearestSpot->y - 7));
-
-        window.draw(mouseCircle);
-    }
+        { float(GRID_LEFT_OFFSET), float(GRID_TOP_OFFSET) },
+        { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
+        { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
+        { float(GRID_LEFT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
+        BORDER_COLOR);
 }
 
 void ApplicationManager::drawTitlePanel() {
@@ -322,12 +315,10 @@ void ApplicationManager::drawComponentPanel() {
 
 void ApplicationManager::drawInstructionPanel() {
     // Draw panel outline
-    GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
+    GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, 
+                                   PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
                                    BORDER_COLOR);
 
-    // Draw different text depending on mode
-
-    // Title - display mode
     std::string titleStr = "Mode: ";
     sf::Text title;
     title.setFont(DEFAULT_FONT);
@@ -335,6 +326,7 @@ void ApplicationManager::drawInstructionPanel() {
     title.setFillColor(sf::Color::White);
     title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 215));
 
+    // Draw a different title string depending on the mode
     switch (mode) {
         case PLACING:
         case PLACING_COMPONENT:
@@ -492,13 +484,12 @@ void ApplicationManager::drawInfoPanel() {
     }
 }
 
-void ApplicationManager::drawComponent(Component* component) {
+void ApplicationManager::drawComponent(Component* component, sf::Color color) {
 	sf::Vector2f posSpot = component->getPositive()->getVector();
 	sf::Vector2f negSpot = component->getNegative()->getVector();
 
 	sf::CircleShape c1(5.0f);
 	c1.setPosition(posSpot - sf::Vector2f(5.0f, 5.0f));
-    sf::Color color = COMPONENT_COLOR;
     c1.setFillColor(color);
 	c1.setOutlineColor(sf::Color(120, 120, 120));
 	c1.setOutlineThickness(1.0f);
@@ -511,19 +502,19 @@ void ApplicationManager::drawComponent(Component* component) {
 
 	switch (component->getType()->getValue()) {
 		case 0:
-			drawWire(component);
+			drawWire(component, color);
 			break;
 		case 1:
-			drawResistor(component);
+			drawResistor(component, color);
 			break;
 		case 2:
-			drawVSrc(component);
+			drawVSrc(component, color);
 			break;
 	}
 }
 
 // TODO: Generalize next three methods
-void ApplicationManager::drawWire(Component* component) {
+void ApplicationManager::drawWire(Component* component, sf::Color color) {
 	sf::Vector2f posSpot = component->getPositive()->getVector();
 	sf::Vector2f negSpot = component->getNegative()->getVector();
 
@@ -531,11 +522,6 @@ void ApplicationManager::drawWire(Component* component) {
 	double degrees = 180 + (180 / 3.14159165) * atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
 
 	sf::RectangleShape rect(sf::Vector2f(float(length), 2.0f));
-    sf::Color color;
-    if (component == selectedComponent)
-        color = SELECTED_COMPONENT_COLOR;
-    else
-        color = COMPONENT_COLOR;
 	rect.setFillColor(color);
 	rect.setRotation(float(degrees));
 	rect.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -543,7 +529,7 @@ void ApplicationManager::drawWire(Component* component) {
 	window.draw(rect);
 }
 
-void ApplicationManager::drawResistor(Component* component) {
+void ApplicationManager::drawResistor(Component* component, sf::Color color) {
 	sf::Vector2f posSpot = component->getPositive()->getVector();
 	sf::Vector2f negSpot = component->getNegative()->getVector();
 
@@ -555,11 +541,6 @@ void ApplicationManager::drawResistor(Component* component) {
 						   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
 
     sf::RectangleShape rect1({ float(0.5 * (length - tex.getSize().x)), 2.0f });
-    sf::Color color;
-    if (component == selectedComponent)
-        color = SELECTED_COMPONENT_COLOR;
-    else
-        color = COMPONENT_COLOR;
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
     rect1.setPosition(posSpot + sf::Vector2f{ 1.0f, -1.0f });
@@ -580,7 +561,7 @@ void ApplicationManager::drawResistor(Component* component) {
 	window.draw(resistor);
 }
 
-void ApplicationManager::drawVSrc(Component* component) {
+void ApplicationManager::drawVSrc(Component* component, sf::Color color) {
 	sf::Vector2f posSpot = component->getPositive()->getVector();
 	sf::Vector2f negSpot = component->getNegative()->getVector();
 
@@ -592,11 +573,6 @@ void ApplicationManager::drawVSrc(Component* component) {
 		                   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
 
 	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
-    sf::Color color;
-    if (component == selectedComponent)
-        color = SELECTED_COMPONENT_COLOR;
-    else
-        color = COMPONENT_COLOR;
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
 	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));

@@ -35,7 +35,7 @@ class ApplicationManager {
 		sf::RenderWindow window;
 
 	public:
-		ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style = sf::Style::Default);
+		ApplicationManager(sf::VideoMode, std::string, sf::Uint32 = sf::Style::Default);
 
 		inline bool isOpen() { return window.isOpen(); };
 		void update();
@@ -46,10 +46,10 @@ class ApplicationManager {
 		////////////////////////
 		// Management Methods //
 		////////////////////////
-		void handleEvent(sf::Event event);
-        void handleTextEntered(sf::Event::TextEvent event);
-		void handleKeypress(sf::Event::KeyEvent event);
-		void handleMousePressed(sf::Event::MouseButtonEvent event);
+		void handleEvent(sf::Event);
+        void handleTextEntered(sf::Event::TextEvent);
+		void handleKeypress(sf::Event::KeyEvent);
+		void handleMousePressed(sf::Event::MouseButtonEvent);
 		void handleClosed();
 
 
@@ -62,10 +62,10 @@ class ApplicationManager {
 		void drawComponentPanel();
         void drawInstructionPanel();
         void drawInfoPanel();
-		void drawComponent(Component* component);
-		void drawWire(Component* component);
-		void drawResistor(Component* component);
-		void drawVSrc(Component* component);
+		void drawComponent(Component*, sf::Color = COMPONENT_COLOR);
+		void drawWire(Component*, sf::Color = COMPONENT_COLOR);
+		void drawResistor(Component*, sf::Color = COMPONENT_COLOR);
+		void drawVSrc(Component*, sf::Color = COMPONENT_COLOR);
         //void transitionAlpha();
 
 
