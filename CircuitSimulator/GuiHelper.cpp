@@ -22,7 +22,3 @@ void GuiHelper::drawRectangleHollow(sf::RenderWindow& window, sf::Vector2f p1, s
     GuiHelper::drawLine(window, p3, p4, color);
     GuiHelper::drawLine(window, p4, p1, color);
 }
-
-sf::Color GuiHelper::applyAlpha(sf::Color color, double alpha) {
-    return sf::Color(color.r, color.g, color.b, int(alpha));
-}

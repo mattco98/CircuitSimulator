@@ -26,5 +26,5 @@ namespace Calculator {
 
     GridNode getGridNodeFromSpot(std::vector<GridNode>, GridSpot*);
 
-    std::vector<Component*> getVoltageInputs(Component*, std::vector<Component*> = std::vector<Component*>());
+    std::vector<Component*> getVoltageInputs(Component*, std::vector<Component*> = std::vector<Component*>(), int depth = 0);
 }

@@ -18,6 +18,7 @@ enum Mode {
 
 class ApplicationManager {
 	private:
+        bool error = false;
         Mode mode = PLACING;
         std::string input = "";
 
@@ -49,7 +50,6 @@ class ApplicationManager {
         void handleTextEntered(sf::Event::TextEvent event);
 		void handleKeypress(sf::Event::KeyEvent event);
 		void handleMousePressed(sf::Event::MouseButtonEvent event);
-		void handleResized(sf::Event event);
 		void handleClosed();
 
 

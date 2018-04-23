@@ -47,6 +47,7 @@ const int GRID_RIGHT_OFFSET = GUI_X_PADDING;
 
 // MENU
 const sf::Color DEFAULT_COLOR = sf::Color(225, 225, 225);
+const sf::Color WARNING_COLOR = sf::Color(239, 124, 124);
 const sf::Font DEFAULT_FONT = getDefaultFont();
 const unsigned int DEFAULT_FONT_SIZE = 18;
 

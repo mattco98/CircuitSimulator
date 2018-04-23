@@ -10,7 +10,6 @@ struct GridSpot {
 	int x,
 		y;
 
-	// TODO: vector of tuples to track polarity?
 	std::vector<Component*> components;
     GridNode* node;
 

@@ -19,13 +19,16 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 
 	// Initialize textures
 	sf::Texture resistor,
-				vSrc;
+				vSrc,
+                error;
 
     resistor.loadFromFile("resistor.png");
     vSrc.loadFromFile("vsrc.png");
+    error.loadFromFile("error.png");
 
 	textures.push_back(resistor);
 	textures.push_back(vSrc);
+    textures.push_back(error);
 };
 
 void ApplicationManager::update() {
@@ -164,13 +167,7 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
     recalculate();
 }
 
-void ApplicationManager::handleResized(sf::Event event) {
-	// TODO
-	// event.size.width, event.size.height
-}
-
 void ApplicationManager::handleClosed() {
-	// TODO: Confirmation dialog, etc
 	window.close();
 }
 
@@ -227,7 +224,7 @@ void ApplicationManager::drawGui() {
 		for (auto row : grid.getSpots()) {
             for (GridSpot* spot : row) {
                 sf::CircleShape spotCircle(3.0f);
-                spotCircle.setFillColor(GuiHelper::applyAlpha(sf::Color::Red, alpha));
+                spotCircle.setFillColor(sf::Color::Red);
                 spotCircle.setPosition(float(spot->x - 3), float(spot->y - 3));
                 window.draw(spotCircle);
             }
@@ -246,7 +243,7 @@ void ApplicationManager::drawGui() {
                                    { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
                                    { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
                                    { float(GRID_LEFT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
-                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+                                   BORDER_COLOR);
 
 	// Draw dot on nearest grid spot
 	GridSpot* nearestSpot;
@@ -258,7 +255,7 @@ void ApplicationManager::drawGui() {
 
     if (mode == PLACING) {
         sf::CircleShape mouseCircle(5.0f);
-        mouseCircle.setFillColor(GuiHelper::applyAlpha(sf::Color(74, 77, 82), alpha));
+        mouseCircle.setFillColor(sf::Color(74, 77, 82));
         mouseCircle.setOutlineColor(sf::Color(47, 49, 54));
         mouseCircle.setOutlineThickness(1.0f);
         mouseCircle.setPosition(float(nearestSpot->x - 7), float(nearestSpot->y - 7));
@@ -270,13 +267,13 @@ void ApplicationManager::drawGui() {
 void ApplicationManager::drawTitlePanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, PANEL_TITLE_4,
-                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+                                   BORDER_COLOR);
 
     sf::Text title;
     title.setFont(DEFAULT_FONT);
     title.setCharacterSize(DEFAULT_FONT_SIZE + 6);
     title.setString("Circuit Simulator");
-    title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    title.setFillColor(sf::Color::White);
     title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING + 15));
     title.setStyle(sf::Text::Style::Bold);
 
@@ -290,13 +287,13 @@ void ApplicationManager::drawComponentPanel() {
 
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, PANEL_COMP_4,
-            GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+            BORDER_COLOR);
 
 	sf::Text title;
 	title.setFont(DEFAULT_FONT);
 	title.setCharacterSize(DEFAULT_FONT_SIZE + 2);
 	title.setString("Selected Component:");
-    title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    title.setFillColor(sf::Color::White);
 	title.setPosition(float(xPos), float(yPos));
 
 	window.draw(title);
@@ -310,13 +307,13 @@ void ApplicationManager::drawComponentPanel() {
 		text.setFont(DEFAULT_FONT);
 		text.setCharacterSize(DEFAULT_FONT_SIZE);
 		text.setString(name);
-        text.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+        text.setFillColor(sf::Color::White);
 		text.setPosition(float(xPos), float(yPos));
 
 		if (i == placingComponentType->getValue()) {
-			text.setFillColor(GuiHelper::applyAlpha(sf::Color(40, 40, 40), alpha));
+			text.setFillColor(sf::Color(40, 40, 40));
 			sf::RectangleShape rect(sf::Vector2f(265, 20));
-			rect.setFillColor(GuiHelper::applyAlpha(sf::Color(225, 225, 225), alpha));
+			rect.setFillColor(sf::Color(225, 225, 225));
 			rect.setPosition(sf::Vector2f(float(xPos - 3), float(yPos + 1)));
 			window.draw(rect);
 		}
@@ -331,7 +328,7 @@ void ApplicationManager::drawComponentPanel() {
 void ApplicationManager::drawInstructionPanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
-                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+                                   BORDER_COLOR);
 
     // Draw different text depending on mode
 
@@ -340,7 +337,7 @@ void ApplicationManager::drawInstructionPanel() {
     sf::Text title;
     title.setFont(DEFAULT_FONT);
     title.setCharacterSize(DEFAULT_FONT_SIZE);
-    title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    title.setFillColor(sf::Color::White);
     title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 215));
 
     switch (mode) {
@@ -365,30 +362,20 @@ void ApplicationManager::drawInstructionPanel() {
     sf::Text info;
     info.setFont(DEFAULT_FONT);
     info.setCharacterSize(DEFAULT_FONT_SIZE - 2);
-    info.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+    info.setFillColor(sf::Color::White);
     info.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 250));
 
     std::string infoStr;
 
     // Draw different information text depending on the mode
     if (mode == PLACING || mode == PLACING_COMPONENT) {
-        infoStr = "Place components on the\ngrid.\n\nAvailable Actions:\n   "
-                  "Up/Down Arrow:\n\t  Change component\n\t  type\n   Left "
-                  "click:\n\t  Place a component\n   Space:\n\t  Selection "
-                  "Components";
+        infoStr = "Place components on the\ngrid.";
     } else if (mode == SELECTING) {
         infoStr = "Select a component in\norder to view its info or\nchange "
-                  "its properties.\n\nAvailable Actions:\n   Right click:\n\t"
-                  "   Select the\n\t   component under the\n\t   cursor\n   "
-                  "P:\n\t   Place Components";
+                  "its properties.";
     } else if (mode == SELECTED) {
         infoStr = "Select a component in\norder to view its info or\nchange "
-                  "its properties.\n\nAvailable Actions:\n   Right click:\n\t"
-                  "   Select the\n\t   component under the\n\t   cursor\n   "
-                  "P:\n\t   Place Components";
-        if (selectedComponent != nullptr && selectedComponent->getType() != &ComponentTypes::WIRE) {
-            infoStr += "\n   S:\n\t   Set component value";
-        }
+                  "its properties.";
     } else if (mode == TYPING) {
         infoStr = "Enter the component\nvalue from your keyboard.\nStart "
                   "typing, and your\ninput will be shown below.\n\nCurrent "
@@ -396,14 +383,43 @@ void ApplicationManager::drawInstructionPanel() {
     }
 
     info.setString(infoStr);
-
     window.draw(info);
+
+    // Display error message if there was a calculation error
+    if (error) {
+        sf::Texture tex = textures.at(2);
+        sf::Vector2f spritePos1(PANEL_INSTRUCT_4 + sf::Vector2f{ 40.0, -25.0 });
+        sf::Vector2f spritePos2(PANEL_INSTRUCT_3 + sf::Vector2f{ -40.0, -25.0 });
+        sf::Sprite error1, error2;
+        error1.setOrigin({ float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0) });
+        error1.setTexture(tex);
+        error1.setPosition(spritePos1);
+        error1.setScale({ float(1.0 / 6.5), float(1.0 / 6.5) });
+        error2.setOrigin({ float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0) });
+        error2.setTexture(tex);
+        error2.setPosition(spritePos2);
+        error2.setScale({ float(1.0 / 6.5), float(1.0 / 6.5) });
+
+        sf::Text warning;
+        warning.setFont(DEFAULT_FONT);
+        warning.setCharacterSize(DEFAULT_FONT_SIZE - 3);
+        warning.setPosition(spritePos1 + sf::Vector2f{ 30.0, -20.0 });
+        warning.setString("Error calculating\n circuit values");
+
+        warning.setFillColor(WARNING_COLOR);
+        error1.setColor(WARNING_COLOR);
+        error2.setColor(WARNING_COLOR);
+
+        window.draw(error1);
+        window.draw(error2);
+        window.draw(warning);
+    }
 }
 
 void ApplicationManager::drawInfoPanel() {
     // Draw panel outline
     GuiHelper::drawRectangleHollow(window, PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, PANEL_INFO_4,
-                                   GuiHelper::applyAlpha(BORDER_COLOR, alpha));
+                                   BORDER_COLOR);
 
     if (selectedComponent != nullptr) {
         sf::Text title,
@@ -436,9 +452,9 @@ void ApplicationManager::drawInfoPanel() {
         voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE - 2);
         ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE - 2);
 
-        title.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
-        voltageDrop.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
-        ampsThrough.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+        title.setFillColor(sf::Color::White);
+        voltageDrop.setFillColor(sf::Color::White);
+        ampsThrough.setFillColor(sf::Color::White);
 
         title.setString(titleStr);
         voltageDrop.setString(voltageDropStr);
@@ -463,7 +479,7 @@ void ApplicationManager::drawInfoPanel() {
             sf::Text value;
             value.setFont(DEFAULT_FONT);
             value.setCharacterSize(DEFAULT_FONT_SIZE - 2);
-            value.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+            value.setFillColor(sf::Color::White);
             value.setString(ss.str());
             value.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 690));
 
@@ -474,7 +490,7 @@ void ApplicationManager::drawInfoPanel() {
         text.setFont(DEFAULT_FONT);
         text.setCharacterSize(DEFAULT_FONT_SIZE);
         text.setString("No Component Selected");
-        text.setFillColor(GuiHelper::applyAlpha(sf::Color::White, alpha));
+        text.setFillColor(sf::Color::White);
         text.setPosition({ float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 610) });
 
         window.draw(text);
@@ -487,7 +503,7 @@ void ApplicationManager::drawComponent(Component* component) {
 
 	sf::CircleShape c1(5.0f);
 	c1.setPosition(posSpot - sf::Vector2f(5.0f, 5.0f));
-    sf::Color color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+    sf::Color color = COMPONENT_COLOR;
     c1.setFillColor(color);
 	c1.setOutlineColor(sf::Color(120, 120, 120));
 	c1.setOutlineThickness(1.0f);
@@ -508,7 +524,6 @@ void ApplicationManager::drawComponent(Component* component) {
 		case 2:
 			drawVSrc(component);
 			break;
-		// TODO: Default
 	}
 }
 
@@ -523,9 +538,9 @@ void ApplicationManager::drawWire(Component* component) {
 	sf::RectangleShape rect(sf::Vector2f(float(length), 2.0f));
     sf::Color color;
     if (component == selectedComponent)
-        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+        color = SELECTED_COMPONENT_COLOR;
     else
-        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+        color = COMPONENT_COLOR;
 	rect.setFillColor(color);
 	rect.setRotation(float(degrees));
 	rect.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -544,22 +559,22 @@ void ApplicationManager::drawResistor(Component* component) {
 	sf::Vector2f spritePos(float(posSpot.x - (posSpot.x - negSpot.x) / 2.0 + sin(radians) * tex.getSize().x / 4.0),
 						   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
 
-	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
+    sf::RectangleShape rect1({ float(0.5 * (length - tex.getSize().x)), 2.0f });
     sf::Color color;
     if (component == selectedComponent)
-        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+        color = SELECTED_COMPONENT_COLOR;
     else
-        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+        color = COMPONENT_COLOR;
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
-	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
+    rect1.setPosition(posSpot + sf::Vector2f{ 1.0f, -1.0f });
 
 	sf::RectangleShape rect2(rect1);
 	rect2.setRotation(float((radians + PI) * 180.0 / PI));
 	rect2.setPosition(negSpot + sf::Vector2f(-1.0f, 1.0f));
 
 	sf::Sprite resistor;
-	resistor.setOrigin(sf::Vector2f(float(tex.getSize().x / 2.0), 0.0));
+    resistor.setOrigin({ float(tex.getSize().x / 2.0), 0.0 });
 	resistor.setTexture(tex);
 	resistor.setPosition(spritePos);
 	resistor.setRotation(float(radians * (180.0 / PI)));
@@ -584,9 +599,9 @@ void ApplicationManager::drawVSrc(Component* component) {
 	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
     sf::Color color;
     if (component == selectedComponent)
-        color = GuiHelper::applyAlpha(SELECTED_COMPONENT_COLOR, alpha);
+        color = SELECTED_COMPONENT_COLOR;
     else
-        color = GuiHelper::applyAlpha(COMPONENT_COLOR, alpha);
+        color = COMPONENT_COLOR;
 	rect1.setFillColor(color);
 	rect1.setRotation(float(radians * 180.0 / PI));
 	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
@@ -636,5 +651,10 @@ void ApplicationManager::setSelectedComponentValue(std::string input) {
 }
 
 void ApplicationManager::recalculate() {
-    Calculator::calculate(grid.getSpots(), grid.getComponents());
+    try {
+        Calculator::calculate(grid.getSpots(), grid.getComponents());
+        error = false;
+    } catch (...) {
+        error = true;
+    }
 }

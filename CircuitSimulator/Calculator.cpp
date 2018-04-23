@@ -460,7 +460,11 @@ GridNode Calculator::getGridNodeFromSpot(std::vector<GridNode> gridNodes, GridSp
     return node;
 }
 
-std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::vector<Component*> resistors) {
+std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::vector<Component*> resistors, int depth) {
+    if (depth > 100) {
+        throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 200");
+    }
+
     std::vector<Component*> posComps = component->getPositive()->components,
                             negComps = component->getNegative()->components,
                             connectedComponents;
@@ -481,7 +485,7 @@ std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::
             if (!added)
                 resistors.push_back(comp);
         } else if (comp->getType() == &ComponentTypes::VSRC && comp != component) {
-            std::vector<Component*> newComps = getVoltageInputs(comp, resistors);
+            std::vector<Component*> newComps = getVoltageInputs(comp, resistors, ++depth);
             resistors.insert(resistors.end(), newComps.begin(), newComps.end());
         }
     }

@@ -43,9 +43,9 @@ extern const int GRID_RIGHT_OFFSET;
 
 // MENU
 extern const sf::Color DEFAULT_COLOR;
+extern const sf::Color WARNING_COLOR;
 extern const sf::Font DEFAULT_FONT;
 extern const unsigned int DEFAULT_FONT_SIZE;
-extern const sf::Text::Style MENU_DEFAULT_STYLE;
 
 // Components
 extern const sf::Color COMPONENT_COLOR;
