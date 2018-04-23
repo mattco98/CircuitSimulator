@@ -1,13 +1,18 @@
 #pragma once
 
 #include <string>
-#include "ComponentType.h"
+#include <SFML/Window/Keyboard.hpp>
 
-namespace ComponentTypes {
-    extern const int NUM_TYPES;
-    extern const ComponentType WIRE;
-    extern const ComponentType RESISTOR;
-    extern const ComponentType VSRC;
+struct ComponentType {
+    std::string name;
 
-    const ComponentType* getType(int i);
-}
+    ComponentType(std::string);
+
+    std::string getName() const;
+};
+
+extern const ComponentType WIRE;
+extern const ComponentType RESISTOR;
+extern const ComponentType VSRC;
+
+void shift(const ComponentType*&, sf::Keyboard::Key);

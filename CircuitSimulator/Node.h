@@ -4,14 +4,14 @@
 #include <tuple>
 
 enum class Unit {
-    OHM = 0,
-    VOLT = 1
+    OHM,
+    VOLT
 };
 
 enum class Polarity {
-    UNKNOWN = 0,
-    POSITIVE = 1,
-    NEGATIVE = 2
+    UNKNOWN,
+    POSITIVE,
+    NEGATIVE
 };
 
 Polarity operator !(Polarity pol);

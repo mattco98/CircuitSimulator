@@ -28,8 +28,8 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     // set each component voltage and current to zero and return false.
     if (!isCompleteCircuit || populatedSpots.size() == 0) {
         for (int i = 0; i < components.size(); i++) {
-            components[i]->setAmpsThrough(0.0);
-            components[i]->setVoltageDrop(0.0);
+            components[i]->currentThrough = 0.0;
+            components[i]->voltageDrop = 0.0;
         }
 
         return false;
@@ -180,7 +180,7 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     // Start the process of turning node voltage into component voltages and currents.
     // On first pass, the current and voltage of every resistor is calculated.
     for (Component* component : components) {
-        if (component->getType() == &ComponentTypes::RESISTOR) {
+        if (component->type == &RESISTOR) {
             std::vector<GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
             std::vector<Node> compNodes(2);
 
@@ -193,29 +193,29 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
             // compNodes[0] will always be the positive node, and compNodes[1] the negative
             double voltage = compNodes[0].voltage - compNodes[1].voltage;
-            double current = voltage / component->getValue();
+            double current = voltage / component->value;
 
-            component->setVoltageDrop(voltage);
-            component->setAmpsThrough(current);
+            component->voltageDrop = voltage;
+            component->currentThrough = current;
         }
     }
 
     // The voltage sources are handled second, as, in order to find the current through
     // them, the current through all connected resistors must be known.
     for (Component* component : components) {
-        if (component->getType() == &ComponentTypes::VSRC) {
+        if (component->type == &VSRC) {
             // Voltage drop across a vsrc is just its value
-            component->setVoltageDrop(component->getValue());
+            component->voltageDrop = component->value;
 
             std::vector<Component*> resistors = getVoltageInputs(component);
 
             double currentSum = 0;
 
             for (Component* resistor : resistors) {
-                currentSum += resistor->getAmpsThrough();
+                currentSum += resistor->currentThrough;
             }
 
-            component->setAmpsThrough(currentSum);
+            component->currentThrough = currentSum;
         }
     }
 
@@ -293,7 +293,7 @@ std::vector<GridSpot*> Calculator::getNeighboorSpots(GridSpot* spot) {
     for (int i = 0; i < spot->components.size(); i++) {
         Component* comp = spot->components[i];
 
-        if (comp->getType() == &ComponentTypes::WIRE)
+        if (comp->type == &WIRE)
             neighboors.push_back(comp->getOther(spot));
     }
 
@@ -333,9 +333,9 @@ std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode>* gri
 
             // Determine polarity
             for (GridSpot* spot : other.spots) {
-                if (component->getPositive() == spot) {
+                if (component->positive == spot) {
                     pol = Polarity::NEGATIVE;
-                } else if (component->getNegative() == spot) {
+                } else if (component->negative == spot) {
                     pol = Polarity::POSITIVE;
                 }
             }
@@ -347,8 +347,8 @@ std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode>* gri
             // Form connection between this Node and other Node
             nodes[i].addConnection(
                 &nodes[other.id],
-                component->getValue(),
-                component->getType() == &ComponentTypes::RESISTOR ? Unit::OHM : Unit::VOLT,
+                component->value,
+                component->type == &RESISTOR ? Unit::OHM : Unit::VOLT,
                 pol
             );
         }
@@ -440,8 +440,8 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
 std::vector<GridNode> Calculator::getGridNodesFromComponent(std::vector<GridNode> gridNodes, Component* component) {
     std::vector<GridNode> nodes;
 
-    nodes.push_back(getGridNodeFromSpot(gridNodes, component->getPositive()));
-    nodes.push_back(getGridNodeFromSpot(gridNodes, component->getNegative()));
+    nodes.push_back(getGridNodeFromSpot(gridNodes, component->positive));
+    nodes.push_back(getGridNodeFromSpot(gridNodes, component->negative));
 
     return nodes;
 }
@@ -465,16 +465,16 @@ std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::
         throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 200");
     }
 
-    std::vector<Component*> posComps = component->getPositive()->components,
-                            negComps = component->getNegative()->components,
+    std::vector<Component*> posComps = component->positive->components,
+                            negComps = component->negative->components,
                             connectedComponents;
     connectedComponents.reserve(posComps.size() + negComps.size());
     connectedComponents.insert(connectedComponents.begin(), posComps.begin(), posComps.end());
     connectedComponents.insert(connectedComponents.begin(), negComps.begin(), negComps.end());
 
     for (Component* comp : connectedComponents) {
-        if (comp->getType() == &ComponentTypes::RESISTOR && comp->getAmpsThrough() > 0.0 &&
-            (comp->getNegative() == component->getNegative() || comp->getNegative() == component->getPositive())) {
+        if (comp->type == &RESISTOR && comp->currentThrough > 0.0 &&
+            (comp->negative == component->negative || comp->negative == component->positive)) {
             bool added = false;
 
             for (Component* resistor : resistors) {
@@ -484,7 +484,7 @@ std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::
 
             if (!added)
                 resistors.push_back(comp);
-        } else if (comp->getType() == &ComponentTypes::VSRC && comp != component) {
+        } else if (comp->type == &VSRC && comp != component) {
             std::vector<Component*> newComps = getVoltageInputs(comp, resistors, ++depth);
             resistors.insert(resistors.end(), newComps.begin(), newComps.end());
         }

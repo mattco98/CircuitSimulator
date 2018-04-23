@@ -9,6 +9,6 @@ struct GridNode {
 
     std::vector<Component*> getNonWireComponents() const;
 
-    inline bool operator ==(GridNode other) { return id == other.id; }
-    inline bool operator !=(GridNode other) { return id != other.id; }
+    inline bool operator ==(GridNode other) const { return id == other.id; }
+    inline bool operator !=(GridNode other) const { return id != other.id; }
 };

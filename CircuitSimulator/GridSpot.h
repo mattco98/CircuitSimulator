@@ -7,14 +7,15 @@
 struct GridNode;
 
 struct GridSpot {
-	int x,
-		y;
+    const int x,
+              y;
 
-	std::vector<Component*> components;
-    GridNode* node;
+    std::vector<Component*> components;
 
-    GridSpot(int, int);
-    GridSpot(sf::Vector2i);
+    inline GridSpot(int x, int y) : x(x), y(y) { };
+    inline GridSpot(sf::Vector2i v) : x(v.x), y(v.y) { };
 
-    sf::Vector2f getVector() const;
+    inline sf::Vector2f getVector() const { 
+        return sf::Vector2f{ float(x), float(y) }; 
+    }
 };

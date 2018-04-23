@@ -9,11 +9,11 @@
 #include "Config.h"
 
 enum Mode {
-    PLACING = 0,
-    PLACING_COMPONENT = 1,
-    SELECTING = 2,
-    SELECTED = 3,
-    TYPING = 4
+    PLACING,
+    PLACING_COMPONENT,
+    SELECTING,
+    SELECTED,
+    TYPING
 };
 
 class ApplicationManager {
@@ -50,7 +50,6 @@ class ApplicationManager {
         void handleTextEntered(sf::Event::TextEvent);
 		void handleKeypress(sf::Event::KeyEvent);
 		void handleMousePressed(sf::Event::MouseButtonEvent);
-		void handleClosed();
 
 
 		///////////////////////
@@ -63,10 +62,6 @@ class ApplicationManager {
         void drawInstructionPanel();
         void drawInfoPanel();
 		void drawComponent(Component*, sf::Color = COMPONENT_COLOR);
-		void drawWire(Component*, sf::Color = COMPONENT_COLOR);
-		void drawResistor(Component*, sf::Color = COMPONENT_COLOR);
-		void drawVSrc(Component*, sf::Color = COMPONENT_COLOR);
-        //void transitionAlpha();
 
 
 		////////////////////
@@ -74,4 +69,6 @@ class ApplicationManager {
 		////////////////////
         void setSelectedComponentValue(std::string);
         void recalculate();
+        void drawRectangleHollow(sf::RenderWindow&, sf::Vector2f, sf::Vector2f, sf::Vector2f, sf::Vector2f, sf::Color color);
+        void drawLine(sf::RenderWindow&, sf::Vector2f, sf::Vector2f, sf::Color = sf::Color::White);
 };

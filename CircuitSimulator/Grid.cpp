@@ -37,7 +37,7 @@ std::vector< std::vector<GridSpot*> > Grid::getSpots() const {
     return spots;
 };
 
-bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const {
+bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot*& spot) const {
     int numSpotsHorz = width / SPOT_SPACING;
     int numSpotsVert = height / SPOT_SPACING;
 
@@ -53,15 +53,15 @@ bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot** spot) const {
     if (xIndex < 0 || yIndex < 0 || xIndex > numSpotsHorz - 1 || yIndex > numSpotsVert - 1)
         return false;
 
-    *spot = spots[yIndex][xIndex];
+    spot = spots[yIndex][xIndex];
     return true;
 }
 
 bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component* &nearestComp) const {
     double x,
-        y,
-        dx,
-        dy;
+           y,
+           dx,
+           dy;
     GridSpot* spot1;
     GridSpot* spot2;
     Component* component;
@@ -69,17 +69,17 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component* &nearestComp) 
     for (int i = 0; i < components.size(); i++) {
         component = components.at(i);
 
-        spot1 = component->getPositive();
-        spot2 = component->getNegative();
+        spot1 = component->positive;
+        spot2 = component->negative;
 
-        x = spot1->x;
-        y = spot1->y;
+        x = double(spot1->x);
+        y = double(spot1->y);
 
         dx = (spot2->x - x) / 100.0;
         dy = (spot2->y - y) / 100.0;
 
         for (int j = 0; j < 100; j++) {
-            if (fabs(x - double(pos.x)) < 10.0 && fabs(y - double(pos.y)) < 10.0) {
+            if (fabs(x - double(pos.x)) < 14.0 && fabs(y - double(pos.y)) < 14.0) {
                 nearestComp = component;
                 return true;
             }
@@ -108,19 +108,17 @@ void Grid::addComponent(Component* component) {
 
 void Grid::removeComponent(Component* component) {
     std::vector<Component*>::iterator it = components.begin();
-    bool deleted = false;
+    bool deleted;
 
-    for (std::vector<GridSpot*> row : spots) {
-        for (GridSpot* spot : row) {
-            deleted = false;
-            std::vector<Component*>::iterator it = spot->components.begin();
-            while (!deleted && it != spot->components.end()) {
-                if (*it == component) {
-                    spot->components.erase(it);
-                    deleted = true;
-                } else {
-                    ++it;
-                }
+    for (GridSpot* spot : { component->positive, component->negative }) {
+        deleted = false;
+        std::vector<Component*>::iterator it = spot->components.begin();
+        while (!deleted && it != spot->components.end()) {
+            if (*it == component) {
+                spot->components.erase(it);
+                deleted = true;
+            } else {
+                ++it;
             }
         }
     }

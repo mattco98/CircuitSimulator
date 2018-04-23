@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 // General
-extern const double PI;
+extern const float PI;
 
 // APPLICATION
 extern const int SCREEN_WIDTH;

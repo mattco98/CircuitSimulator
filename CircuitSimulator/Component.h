@@ -5,32 +5,19 @@
 
 struct GridSpot;
 
-class Component {
-	private:
-		const ComponentType* type;
+struct Component {
+    const ComponentType* const type;
+    
+    double value,
+           voltageDrop,
+           currentThrough;
 
-        double value;
-		double voltageDrop;
-		double ampsThrough;
+    GridSpot* positive;
+    GridSpot* negative;
 
-		GridSpot* positive;
-		GridSpot* negative;
+    inline Component(const ComponentType* type) : type(type), value(5.0) { }
 
-	public:
-		Component(const ComponentType* type);
-
-        const ComponentType* getType();
-        double getValue();
-        double getVoltageDrop();
-		double getAmpsThrough();
-		GridSpot* getPositive();
-		GridSpot* getNegative();
-        GridSpot* getOther(GridSpot* s);
-
-        void setValue(double v);
-		void setVoltageDrop(double drop);
-		void setAmpsThrough(double amps);
-
-		void setPositive(GridSpot** spot);
-		void setNegative(GridSpot** spot);
+    inline GridSpot* getOther(GridSpot* s) const {
+        return s == positive ? negative : (s == negative ? positive : nullptr);
+    }
 };

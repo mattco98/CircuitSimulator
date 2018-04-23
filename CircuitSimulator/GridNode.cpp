@@ -6,7 +6,7 @@ std::vector<Component*> GridNode::getNonWireComponents() const {
     for (GridSpot* spot : spots) {
         std::vector<Component*> comps = spot->components;
         for (Component* comp : comps) {
-            if (comp->getType() != &ComponentTypes::WIRE) {
+            if (comp->type != &WIRE) {
                 bool seen = false;
                 for (Component* comp1 : components) {
                     if (comp1 == comp) seen = true;

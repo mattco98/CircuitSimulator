@@ -1,7 +1,7 @@
 #include "Config.h"
 
 // General
-const double PI = 3.141592;
+const float PI = 3.141592f;
 
 // Get default font
 sf::Font getDefaultFont() {

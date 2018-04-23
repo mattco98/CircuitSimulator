@@ -5,14 +5,13 @@
 #include <sstream>
 #include "ApplicationManager.h"
 #include "ComponentTypes.h"
-#include "GuiHelper.h"
 #include "Calculator.h"
 
 ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style) :
-	// Initialize window and grid
-	window(mode, windowTitle, style),
-	grid(),
-	placingComponentType(&ComponentTypes::WIRE) {
+    window(mode, windowTitle, style) {
+
+    grid = Grid();
+    placingComponentType = &WIRE;
 
     // Limit fps to 60
     window.setFramerateLimit(60);
@@ -32,8 +31,6 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 };
 
 void ApplicationManager::update() {
-    std::vector< std::vector<GridSpot*> > spots = grid.getSpots();
-
 	window.clear(BACKGROUND_COLOR);
 
 	sf::Event event;
@@ -61,65 +58,34 @@ void ApplicationManager::handleEvent(sf::Event event) {
 			handleMousePressed(event.mouseButton);
 			break;
 		case sf::Event::Closed:
-			handleClosed();
+            window.close();
 			break;
 	}
 }
 
-void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
-    if (mode == TYPING) {
-        char ch = char(event.unicode);
-
-        if (ch == 's') {
-            return;
-        } else if (ch == 8) {
-            input = input.substr(0, input.size() - 1);
-        } else if (ch != 13) {
-            input += ch;
-        } else {
-            setSelectedComponentValue(input);
-            input = "";
-            mode = SELECTED;
-        }
-    }
-}
-
 void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
-	unsigned short key = event.code;
-	int i;
+    sf::Keyboard::Key key = event.code;
 
-	switch (key) {
-		case sf::Keyboard::Escape:
-			handleClosed();
-			break;
-		case sf::Keyboard::Up:
-			i = placingComponentType->getValue() - 1;
-
-			if (i < 0)
-				i = ComponentTypes::NUM_TYPES - 1;
-
-			placingComponentType = ComponentTypes::getType(i);
-			break;
-		case sf::Keyboard::Down:
-			i = placingComponentType->getValue() + 1;
-
-			if (i > ComponentTypes::NUM_TYPES - 1)
-				i = 0;
-
-            placingComponentType = ComponentTypes::getType(i);
-			break;
+    switch (key) {
+        case sf::Keyboard::Escape:
+            window.close();
+            break;
+        case sf::Keyboard::Up:
+        case sf::Keyboard::Down:
+            shift(placingComponentType, key);
+            break;
         case sf::Keyboard::Space:
-            if (mode == PLACING) 
+            if (mode == PLACING)
                 mode = SELECTING;
             else if (mode == SELECTING || mode == SELECTED)
                 mode = PLACING;
             selectedComponent = nullptr;
             break;
-		case sf::Keyboard::C:
-			grid.clearComponents();
-			break;
+        case sf::Keyboard::C:
+            grid.clearComponents();
+            break;
         case sf::Keyboard::S:
-            if (mode == SELECTED && selectedComponent->getType() != &ComponentTypes::WIRE)
+            if (mode == SELECTED && selectedComponent->type != &WIRE)
                 mode = TYPING;
             break;
         case sf::Keyboard::D:
@@ -127,31 +93,47 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             selectedComponent = nullptr;
             recalculate();
             break;
-	}
+    }
 
     recalculate();
 }
 
+void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
+    if (mode == TYPING) {
+        char ch = char(event.unicode);
+
+        if (ch == 8) {
+            input = input.substr(0, input.size() - 1);
+        } else if (ch != 13 && ch != 's') {
+            input += ch;
+        } else if (ch != 's') {
+            setSelectedComponentValue(input);
+            input = "";
+            mode = SELECTED;
+        }
+    }
+}
+
 void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
-	if (event.button == sf::Mouse::Left) {
+	if ((mode == PLACING || mode == PLACING_COMPONENT) && event.button == sf::Mouse::Left) {
 		GridSpot* spot = nullptr;
 		sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-		grid.getNearestSpot(mousePos, &spot);
+		grid.getNearestSpot(mousePos, spot);
 
 		if (mode == PLACING && spot != nullptr) {
 			placingComponent = new Component(placingComponentType);
-			placingComponent->setPositive(&spot);
+			placingComponent->positive = spot;
             mode = PLACING_COMPONENT;
 		} else if (mode == PLACING_COMPONENT && spot != nullptr) {
-			placingComponent->setNegative(&spot);
+			placingComponent->negative = spot;
 
 			grid.addComponent(placingComponent);
 			spot->components.push_back(placingComponent);
-            placingComponent->getPositive()->components.push_back(placingComponent);
+            placingComponent->positive->components.push_back(placingComponent);
 
             mode = PLACING;
 		}
-    } else if (event.button == sf::Mouse::Right && (mode == SELECTING || mode == SELECTED)) {
+    } else if ((mode == SELECTING || mode == SELECTED) && event.button == sf::Mouse::Right) {
         Component* component;
         if (grid.getComponentUnderPosition({ event.x, event.y }, component)) {
             selectedComponent = component;
@@ -160,10 +142,6 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
     }
 
     recalculate();
-}
-
-void ApplicationManager::handleClosed() {
-	window.close();
 }
 
 
@@ -193,39 +171,16 @@ void ApplicationManager::draw() {
 
     if (mode == PLACING_COMPONENT) {
         GridSpot* spot;
-        if (grid.getNearestSpot(sf::Mouse::getPosition(window), &spot)) {
-            placingComponent->setNegative(&spot);
+        if (grid.getNearestSpot(sf::Mouse::getPosition(window), spot)) {
+            placingComponent->negative = spot;
             drawComponent(placingComponent);
         }
     }
 }
 
-//void ApplicationManager::transitionAlpha() {
-//    // When deltaAlpha = 5.167, transition takes exactly 0.5 seconds at 60FPS
-//    if (alphaTransition == 1) {
-//        if (alpha < 255.0) {
-//            alpha += 5.167;
-//        } else {
-//            alphaTransition = 0;
-//        }
-//        if (alpha > 255.0)
-//            alpha = 255.0;
-//    } else if (alphaTransition == 2) {
-//        if (alpha > 100.0) {
-//            alpha -= 5.167;
-//        } else {
-//            alphaTransition = 0;
-//        }
-//        if (alpha < 100.0)
-//            alpha = 100;
-//    }
-//}
-
 void ApplicationManager::drawGui() {
-    bool debug = false;
-
 	// Draw debug objects
-	if (debug) {
+	if (false) {
 		// Draw grid spots
 		for (auto row : grid.getSpots()) {
             for (GridSpot* spot : row) {
@@ -244,7 +199,7 @@ void ApplicationManager::drawGui() {
     drawInfoPanel();
 
     // Draw border around grid
-    GuiHelper::drawRectangleHollow(window,
+    drawRectangleHollow(window,
         { float(GRID_LEFT_OFFSET), float(GRID_TOP_OFFSET) },
         { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
         { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
@@ -254,8 +209,8 @@ void ApplicationManager::drawGui() {
 
 void ApplicationManager::drawTitlePanel() {
     // Draw panel outline
-    GuiHelper::drawRectangleHollow(window, PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, PANEL_TITLE_4,
-                                   BORDER_COLOR);
+    drawRectangleHollow(window, PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, 
+                        PANEL_TITLE_4, BORDER_COLOR);
 
     sf::Text title;
     title.setFont(DEFAULT_FONT);
@@ -269,13 +224,12 @@ void ApplicationManager::drawTitlePanel() {
 }
 
 void ApplicationManager::drawComponentPanel() {
-	int xPos = GUI_X_PADDING + 15,
-		yPos = GUI_Y_PADDING * 2 + 80,
-		index = 0;
+    int xPos = GUI_X_PADDING + 15,
+        yPos = GUI_Y_PADDING * 2 + 80;
 
     // Draw panel outline
-    GuiHelper::drawRectangleHollow(window, PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, PANEL_COMP_4,
-            BORDER_COLOR);
+    drawRectangleHollow(window, PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, 
+                        PANEL_COMP_4, BORDER_COLOR);
 
 	sf::Text title;
 	title.setFont(DEFAULT_FONT);
@@ -288,36 +242,39 @@ void ApplicationManager::drawComponentPanel() {
 
 	yPos += 35;
 
-	for (int i = 0; i < ComponentTypes::NUM_TYPES; i++) {
-		std::string name = ComponentTypes::getType(i)->getName();
+    // Construct array to iterate over
+    const ComponentType* types[3] = { &WIRE, 
+                                      &RESISTOR, 
+                                      &VSRC };
 
-		sf::Text text;
-		text.setFont(DEFAULT_FONT);
-		text.setCharacterSize(DEFAULT_FONT_SIZE);
-		text.setString(name);
+    for (const ComponentType* type : types) {
+        std::string name = type->getName();
+
+        sf::Text text;
+        text.setFont(DEFAULT_FONT);
+        text.setCharacterSize(DEFAULT_FONT_SIZE);
+        text.setString(name);
         text.setFillColor(sf::Color::White);
-		text.setPosition(float(xPos), float(yPos));
+        text.setPosition(float(xPos), float(yPos));
 
-		if (i == placingComponentType->getValue()) {
-			text.setFillColor(sf::Color(40, 40, 40));
-			sf::RectangleShape rect(sf::Vector2f(265, 20));
-			rect.setFillColor(sf::Color(225, 225, 225));
-			rect.setPosition(sf::Vector2f(float(xPos - 3), float(yPos + 1)));
-			window.draw(rect);
-		}
+        if (type == placingComponentType) {
+            text.setFillColor({ 40, 40, 40 });
+            sf::RectangleShape rect({ 265, 20 });
+            rect.setFillColor({ 225, 225, 225 });
+            rect.setPosition(float(xPos - 3), float(yPos + 1));
+            window.draw(rect);
+        }
 
-		window.draw(text);
+        window.draw(text);
 
-		yPos += 20;
-		index++;
-	}
+        yPos += 20;
+    }
 }
 
 void ApplicationManager::drawInstructionPanel() {
     // Draw panel outline
-    GuiHelper::drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, 
-                                   PANEL_INSTRUCT_3, PANEL_INSTRUCT_4,
-                                   BORDER_COLOR);
+    drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, 
+                        PANEL_INSTRUCT_3, PANEL_INSTRUCT_4, BORDER_COLOR);
 
     std::string titleStr = "Mode: ";
     sf::Text title;
@@ -378,14 +335,14 @@ void ApplicationManager::drawInstructionPanel() {
         sf::Vector2f spritePos1(PANEL_INSTRUCT_4 + sf::Vector2f{ 40.0, -25.0 });
         sf::Vector2f spritePos2(PANEL_INSTRUCT_3 + sf::Vector2f{ -40.0, -25.0 });
         sf::Sprite error1, error2;
-        error1.setOrigin({ float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0) });
+        error1.setOrigin(float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0));
         error1.setTexture(tex);
         error1.setPosition(spritePos1);
-        error1.setScale({ float(1.0 / 6.5), float(1.0 / 6.5) });
-        error2.setOrigin({ float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0) });
+        error1.setScale(float(1.0 / 6.5), float(1.0 / 6.5));
+        error2.setOrigin(float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0));
         error2.setTexture(tex);
         error2.setPosition(spritePos2);
-        error2.setScale({ float(1.0 / 6.5), float(1.0 / 6.5) });
+        error2.setScale(float(1.0 / 6.5), float(1.0 / 6.5));
 
         sf::Text warning;
         warning.setFont(DEFAULT_FONT);
@@ -405,60 +362,61 @@ void ApplicationManager::drawInstructionPanel() {
 
 void ApplicationManager::drawInfoPanel() {
     // Draw panel outline
-    GuiHelper::drawRectangleHollow(window, PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, PANEL_INFO_4,
-                                   BORDER_COLOR);
+    drawRectangleHollow(window, PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, 
+                        PANEL_INFO_4, BORDER_COLOR);
 
     if (selectedComponent != nullptr) {
         sf::Text title,
-            voltageDrop,
-            ampsThrough;
-
+                 voltageDrop,
+                 ampsThrough;
         std::string titleStr,
-            voltageDropStr,
-            ampsThroughStr;
-
-        titleStr = "Selected Component Type:\n\t" + selectedComponent->getType()->getName();
-
+                    voltageDropStr,
+                    ampsThroughStr;
         std::stringstream ss;
 
-        ss << "Voltage Difference:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getVoltageDrop() << " V";
+        titleStr = "Selected Component Type:\n\t" + selectedComponent->type->getName();
+
+        ss << "Voltage Difference:\n\t" << std::setprecision(3) << std::fixed 
+           << selectedComponent->voltageDrop << " V";
         voltageDropStr = ss.str();
         // Clear the string stream
         ss.str(std::string());
 
-        ss << "Current Through:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getAmpsThrough() << " A";
+        ss << "Current Through:\n\t" << std::setprecision(3) << std::fixed 
+           << selectedComponent->currentThrough << " A";
         ampsThroughStr = ss.str();
         // Clear the string stream
         ss.str(std::string());
 
         title.setFont(DEFAULT_FONT);
-        voltageDrop.setFont(DEFAULT_FONT);
-        ampsThrough.setFont(DEFAULT_FONT);
-
         title.setCharacterSize(DEFAULT_FONT_SIZE - 2);
-        voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE - 2);
-        ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE - 2);
-
         title.setFillColor(sf::Color::White);
-        voltageDrop.setFillColor(sf::Color::White);
-        ampsThrough.setFillColor(sf::Color::White);
-
         title.setString(titleStr);
-        voltageDrop.setString(voltageDropStr);
-        ampsThrough.setString(ampsThroughStr);
+        title.setPosition(float(GUI_X_PADDING + 15), 
+                          float(GUI_Y_PADDING * 4 + 540));
 
-        title.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 540));
-        voltageDrop.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 590));
-        ampsThrough.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 640));
+        voltageDrop.setFont(DEFAULT_FONT);
+        voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+        voltageDrop.setFillColor(sf::Color::White);
+        voltageDrop.setString(voltageDropStr);
+        voltageDrop.setPosition(float(GUI_X_PADDING + 15), 
+                                float(GUI_Y_PADDING * 4 + 590));
+
+        ampsThrough.setFont(DEFAULT_FONT);
+        ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE - 2);
+        ampsThrough.setFillColor(sf::Color::White);
+        ampsThrough.setString(ampsThroughStr);
+        ampsThrough.setPosition(float(GUI_X_PADDING + 15), 
+                                float(GUI_Y_PADDING * 4 + 640));
 
         window.draw(title);
         window.draw(voltageDrop);
         window.draw(ampsThrough);
 
-        if (selectedComponent->getType() != &ComponentTypes::WIRE) {
-            ss << "Value:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->getValue();
+        if (selectedComponent->type != &WIRE) {
+            ss << "Value:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->value;
 
-            if (selectedComponent->getType() == &ComponentTypes::RESISTOR)
+            if (selectedComponent->type == &RESISTOR)
                 ss << " Ohms";
             else
                 ss << " V";
@@ -478,119 +436,77 @@ void ApplicationManager::drawInfoPanel() {
         text.setCharacterSize(DEFAULT_FONT_SIZE);
         text.setString("No Component Selected");
         text.setFillColor(sf::Color::White);
-        text.setPosition({ float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 610) });
+        text.setPosition(float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 610));
 
         window.draw(text);
     }
 }
 
 void ApplicationManager::drawComponent(Component* component, sf::Color color) {
-	sf::Vector2f posSpot = component->getPositive()->getVector();
-	sf::Vector2f negSpot = component->getNegative()->getVector();
+	sf::Vector2f posSpot = component->positive->getVector();
+	sf::Vector2f negSpot = component->negative->getVector();
 
 	sf::CircleShape c1(5.0f);
-	c1.setPosition(posSpot - sf::Vector2f(5.0f, 5.0f));
+    c1.setOrigin({ 5.0f, 5.0f });
+	c1.setPosition(posSpot);
     c1.setFillColor(color);
-	c1.setOutlineColor(sf::Color(120, 120, 120));
+    c1.setOutlineColor({ 120, 120, 120 });
 	c1.setOutlineThickness(1.0f);
 
 	sf::CircleShape c2(c1);
-	c2.setPosition(negSpot - sf::Vector2f(5.0f, 5.0f));
+	c2.setPosition(negSpot);
 
 	window.draw(c1);
 	window.draw(c2);
 
-	switch (component->getType()->getValue()) {
-		case 0:
-			drawWire(component, color);
-			break;
-		case 1:
-			drawResistor(component, color);
-			break;
-		case 2:
-			drawVSrc(component, color);
-			break;
-	}
-}
+    // Draw actual component
+    const ComponentType* type = component->type;
 
-// TODO: Generalize next three methods
-void ApplicationManager::drawWire(Component* component, sf::Color color) {
-	sf::Vector2f posSpot = component->getPositive()->getVector();
-	sf::Vector2f negSpot = component->getNegative()->getVector();
+    float length = float(sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0)));
+    float radians = PI + atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
+    sf::Vector2f offset = { sin(radians), -cos(radians) };
 
-	double length = sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0));
-	double degrees = 180 + (180 / 3.14159165) * atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
+    if (type == &WIRE) {
+        sf::RectangleShape rect(sf::Vector2f(length, 2.0f));
+        rect.setFillColor(color);
+        rect.setRotation(radians * 180.0f / PI);
+        rect.setPosition(posSpot + offset);
 
-	sf::RectangleShape rect(sf::Vector2f(float(length), 2.0f));
-	rect.setFillColor(color);
-	rect.setRotation(float(degrees));
-	rect.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
+        window.draw(rect);
+    } else {
+        sf::Texture tex;
+        sf::Vector2f spritePos;
+        sf::Sprite sprite;
 
-	window.draw(rect);
-}
+        if (type == &RESISTOR) {
+            tex = textures.at(0);
+            spritePos = { posSpot.x - (posSpot.x - negSpot.x) / 2.0f + sin(radians) * float(tex.getSize().x) / 4.0f,
+                          posSpot.y - (posSpot.y - negSpot.y) / 2.0f - cos(radians) * float(tex.getSize().y) / 2.0f };
+        } else if (type == &VSRC) {
+            tex = textures.at(1);
+            spritePos = { posSpot.x - (posSpot.x - negSpot.x) / 2.0f + sin(radians) * float(tex.getSize().x) / 2.0f,
+                          posSpot.y - (posSpot.y - negSpot.y) / 2.0f - cos(radians) * float(tex.getSize().y) / 2.0f };
+        }
 
-void ApplicationManager::drawResistor(Component* component, sf::Color color) {
-	sf::Vector2f posSpot = component->getPositive()->getVector();
-	sf::Vector2f negSpot = component->getNegative()->getVector();
+        sf::RectangleShape rect1({ 0.5f * (length - float(tex.getSize().x)), 2.0f });
+        rect1.setFillColor(color);
+        rect1.setRotation(radians * 180.0f / PI);
+        rect1.setPosition(posSpot + offset);
 
-    double length = sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0));
-	double radians = PI + atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
+        sf::RectangleShape rect2(rect1);
+        rect2.setRotation((radians + PI) * 180.0f / PI);
+        rect2.setPosition(negSpot + -offset);
 
-	sf::Texture tex = textures.at(0);
-	sf::Vector2f spritePos(float(posSpot.x - (posSpot.x - negSpot.x) / 2.0 + sin(radians) * tex.getSize().x / 4.0),
-						   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
+        sprite.setOrigin({ float(tex.getSize().x) / 2.0f, 0.0f });
+        sprite.setTexture(tex);
+        sprite.setPosition(spritePos);
+        sprite.setRotation(radians * (180.0f / PI));
+        sprite.setColor(color);
 
-    sf::RectangleShape rect1({ float(0.5 * (length - tex.getSize().x)), 2.0f });
-	rect1.setFillColor(color);
-	rect1.setRotation(float(radians * 180.0 / PI));
-    rect1.setPosition(posSpot + sf::Vector2f{ 1.0f, -1.0f });
-
-	sf::RectangleShape rect2(rect1);
-	rect2.setRotation(float((radians + PI) * 180.0 / PI));
-	rect2.setPosition(negSpot + sf::Vector2f(-1.0f, 1.0f));
-
-	sf::Sprite resistor;
-    resistor.setOrigin({ float(tex.getSize().x / 2.0), 0.0 });
-	resistor.setTexture(tex);
-	resistor.setPosition(spritePos);
-	resistor.setRotation(float(radians * (180.0 / PI)));
-	resistor.setColor(color);
-
-	window.draw(rect1);
-	window.draw(rect2);
-	window.draw(resistor);
-}
-
-void ApplicationManager::drawVSrc(Component* component, sf::Color color) {
-	sf::Vector2f posSpot = component->getPositive()->getVector();
-	sf::Vector2f negSpot = component->getNegative()->getVector();
-
-    double length = sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0));
-    double radians = PI + atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
-
-	sf::Texture tex = textures.at(1);
-	sf::Vector2f spritePos(float(posSpot.x - (posSpot.x - negSpot.x) / 2.0 + sin(radians) * tex.getSize().x / 2.0),
-		                   float(posSpot.y - (posSpot.y - negSpot.y) / 2.0 - cos(radians) * tex.getSize().y / 2.0));
-
-	sf::RectangleShape rect1(sf::Vector2f(float(0.5 * (length - tex.getSize().x)), 2.0f));
-	rect1.setFillColor(color);
-	rect1.setRotation(float(radians * 180.0 / PI));
-	rect1.setPosition(posSpot + sf::Vector2f(1.0f, -1.0f));
-
-	sf::RectangleShape rect2(rect1);
-	rect2.setRotation(float((radians + PI) * 180.0 / PI));
-	rect2.setPosition(negSpot + sf::Vector2f(-1.0f, 1.0f));
-
-	sf::Sprite vsrc;
-	vsrc.setOrigin(sf::Vector2f(float(tex.getSize().x / 2.0), 0.0));
-	vsrc.setTexture(tex);
-	vsrc.setPosition(spritePos);
-	vsrc.setRotation(float(radians * (180.0 / PI)));
-	vsrc.setColor(color);
-
-	window.draw(rect1);
-	window.draw(rect2);
-	window.draw(vsrc);
+        window.draw(rect1);
+        window.draw(rect2);
+        window.draw(sprite);
+    }
 }
 
 void ApplicationManager::setSelectedComponentValue(std::string input) {
@@ -617,7 +533,7 @@ void ApplicationManager::setSelectedComponentValue(std::string input) {
                 val *= pow(10.0, 9.0);
         }
 
-        selectedComponent->setValue(val);
+        selectedComponent->value = val;
     }
 }
 
@@ -628,4 +544,22 @@ void ApplicationManager::recalculate() {
     } catch (...) {
         error = true;
     }
+}
+
+void ApplicationManager::drawRectangleHollow(sf::RenderWindow& window, sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f p3, sf::Vector2f p4, sf::Color color) {
+    drawLine(window, p1, p2, color);
+    drawLine(window, p2, p3, color);
+    drawLine(window, p3, p4, color);
+    drawLine(window, p4, p1, color);
+}
+
+void ApplicationManager::drawLine(sf::RenderWindow& window, sf::Vector2f p1, sf::Vector2f p2, sf::Color color) {
+    sf::Vertex v1(p1),
+               v2(p2);
+
+    v1.color = color;
+    v2.color = color;
+
+    const sf::Vertex vertices[2] = { p1, p2 };
+    window.draw(vertices, 2, sf::PrimitiveType::Lines);
 }
