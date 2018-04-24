@@ -13,8 +13,10 @@
 #include "Config.h"
 
 int main() {
+    // Open an instance of the application
 	ApplicationManager am(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Circuit Simluator");
 
+    // While the application is open, update the application manager
 	while (am.isOpen()) {
 		am.update();
 	}
