@@ -1,7 +1,16 @@
-#include <armadillo>
-#include <stdexcept>
+/**
+    Author:             Matthew Olsson
+    File Title:         Calculator.cpp
+    File Description:   Implements methods to calculate and set the voltage
+                        drop and current through each component.
+    Due Date:           4/25/2018
+    Date Created:       4/10/2018
+    Date Last Modified: 4/23/2018
+*/
+
+#include <armadillo>      // Lightweight linear algebra library
+#include <stdexcept>      // runtime_error
 #include "Calculator.h"
-#include "GridNode.h"
 
 bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     bool isCompleteCircuit = true;
@@ -35,6 +44,7 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
         return false;
     }
 
+    // Get Nodes from the circuit
     std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
     std::vector<Node> nodes = convertGridNodesToNodes(&gridNodes);
     std::vector<Node> reducedNodes = reduceNodes(nodes);
@@ -181,18 +191,19 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
     // On first pass, the current and voltage of every resistor is calculated.
     for (Component* component : components) {
         if (component->type == &RESISTOR) {
-            std::vector<GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
-            std::vector<Node> compNodes(2);
+            std::pair<GridNode, GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
+            std::pair<Node, Node> compNodes;
 
             for (Node tNode : nodes) {
-                if (tNode.id == compGridNodes[0].id)
-                    compNodes[0] = tNode;
-                else if (tNode.id == compGridNodes[1].id)
-                    compNodes[1] = tNode;
+                if (tNode.id == compGridNodes.first.id)
+                    compNodes.first = tNode;
+                else if (tNode.id == compGridNodes.second.id)
+                    compNodes.second = tNode;
             }
 
-            // compNodes[0] will always be the positive node, and compNodes[1] the negative
-            double voltage = compNodes[0].voltage - compNodes[1].voltage;
+            // compNodes.first will always be the positive node, and 
+            // compNodes.second the negative
+            double voltage = compNodes.first.voltage - compNodes.second.voltage;
             double current = voltage / component->value;
 
             component->voltageDrop = voltage;
@@ -211,9 +222,9 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
 
             double currentSum = 0;
 
-            for (Component* resistor : resistors) {
+            // Sum up current inputs into the voltage source
+            for (Component* resistor : resistors) 
                 currentSum += resistor->currentThrough;
-            }
 
             component->currentThrough = currentSum;
         }
@@ -265,31 +276,33 @@ std::vector<GridNode> Calculator::getGridNodes(std::vector<GridSpot*> spots) {
     return nodes;
 }
 
-GridNode Calculator::getGridNodeFromSpot(GridSpot* spot, GridNode& node) {
-    std::vector<GridSpot*> spots = getNeighboorSpots(spot);
+void Calculator::getGridNodeFromSpot(GridSpot* spot, GridNode& node) {
+    // Get all spots within the node connected to this spot
+    std::vector<GridSpot*> spots = getNodalNeighboorSpots(spot);
 
+    // Adds spots to the node if they aren't in it already
     for (int i = 0; i < spots.size(); i++) {
-        GridSpot* nSpot = spots[i];
+        GridSpot* spot = spots[i];
         bool seen = false;
 
         for (int j = 0; j < node.spots.size() && !seen; j++) {
-            if (nSpot == node.spots[j])
+            if (spot == node.spots[j])
                 seen = true;
         }
 
         if (!seen) {
-            node.spots.push_back(nSpot);
+            node.spots.push_back(spot);
 
-            getGridNodeFromSpot(nSpot, node);
+            // Get connected spots recursively
+            getGridNodeFromSpot(spot, node);
         } 
     }
-
-    return node;
 }
 
-std::vector<GridSpot*> Calculator::getNeighboorSpots(GridSpot* spot) {
+std::vector<GridSpot*> Calculator::getNodalNeighboorSpots(GridSpot* spot) {
     std::vector<GridSpot*> neighboors;
 
+    // Find all spots connected to this spot via wire components
     for (int i = 0; i < spot->components.size(); i++) {
         Component* comp = spot->components[i];
 
@@ -360,6 +373,7 @@ std::vector<Node> Calculator::convertGridNodesToNodes(std::vector<GridNode>* gri
 std::vector<Node> Calculator::reduceNodes(std::vector<Node> nodes) {
     std::vector<Node> reducedNodes = nodes;
 
+    // Call reduceNodeConnection for all possible combinations of Nodes
     for (int i = 0; i < nodes.size(); i++) {
         for (int j = 0; j < nodes.size(); j++) {
             if (i != j) {
@@ -372,16 +386,15 @@ std::vector<Node> Calculator::reduceNodes(std::vector<Node> nodes) {
 }
 
 void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
+    // Gets all connections from each node to the other
     auto node1Tuples = node1->getConnectionsToNode(node2);
     auto node2Tuples = node2->getConnectionsToNode(node1);
 
-    if (node1Tuples.size() == 0 && node2Tuples.size() == 0) {
+    if (node1Tuples.size() == 0 && node2Tuples.size() == 0)
         return;
-    }
 
-    if (node1Tuples.size() != node2Tuples.size()) {
+    if (node1Tuples.size() != node2Tuples.size())
         throw std::runtime_error("Nodes do not share an equal amount of connections");
-    }
 
     // Reduce connections
     if (node1Tuples.size() > 1) {
@@ -412,6 +425,9 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
                     }
                 }
 
+                // Regather connections node to account for the connection
+                // that was just (possibly) removed
+                // TODO: If statement
                 node1Tuples = node1->getConnectionsToNode(node2);
                 node2Tuples = node2->getConnectionsToNode(node1);
             } else if (std::get<2>(t1) == Unit::VOLT) {
@@ -420,10 +436,9 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
             }
         }
 
-        if (numVolts > 1) {
+        if (numVolts > 1)
             throw std::runtime_error("Voltage sources cannot be in parallel "
                                      "with each other");
-        }
         
         // Add equivalent resistor connection
         if (!(fabs(eqOhms) <= 1e-5)) {
@@ -437,18 +452,17 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
     }
 }
 
-std::vector<GridNode> Calculator::getGridNodesFromComponent(std::vector<GridNode> gridNodes, Component* component) {
-    std::vector<GridNode> nodes;
-
-    nodes.push_back(getGridNodeFromSpot(gridNodes, component->positive));
-    nodes.push_back(getGridNodeFromSpot(gridNodes, component->negative));
-
-    return nodes;
+std::pair<GridNode, GridNode> Calculator::getGridNodesFromComponent(std::vector<GridNode> gridNodes, Component* component) {
+    return std::make_pair(
+        getGridNodeFromSpot(gridNodes, component->positive),
+        getGridNodeFromSpot(gridNodes, component->negative)
+    );;
 }
 
 GridNode Calculator::getGridNodeFromSpot(std::vector<GridNode> gridNodes, GridSpot* spot) {
     GridNode node;
 
+    // Find the GridNode that contains the spot
     for (GridNode gridNode : gridNodes) {
         for (GridSpot* gridSpot : gridNode.spots) {
             if (gridSpot == spot) {
@@ -461,10 +475,11 @@ GridNode Calculator::getGridNodeFromSpot(std::vector<GridNode> gridNodes, GridSp
 }
 
 std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::vector<Component*> resistors, int depth) {
-    if (depth > 100) {
-        throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 200");
-    }
+    // Avoid stack overflows due to recursion
+    if (depth > 100)
+        throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 100");
 
+    // Get all connections component and merge into one vector
     std::vector<Component*> posComps = component->positive->components,
                             negComps = component->negative->components,
                             connectedComponents;
@@ -472,8 +487,12 @@ std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::
     connectedComponents.insert(connectedComponents.begin(), posComps.begin(), posComps.end());
     connectedComponents.insert(connectedComponents.begin(), negComps.begin(), negComps.end());
 
+    // Loop through the components
     for (Component* comp : connectedComponents) {
         if (comp->type == &RESISTOR && comp->currentThrough > 0.0 &&
+            // The component is a resistor and it has a positive current input.
+            // This contributes positively to the current that goes into the
+            // voltage source, so it gets added.
             (comp->negative == component->negative || comp->negative == component->positive)) {
             bool added = false;
 
@@ -485,6 +504,7 @@ std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::
             if (!added)
                 resistors.push_back(comp);
         } else if (comp->type == &VSRC && comp != component) {
+            // Examine the voltage inputs for any neighbooring voltage sources.
             std::vector<Component*> newComps = getVoltageInputs(comp, resistors, ++depth);
             resistors.insert(resistors.end(), newComps.begin(), newComps.end());
         }

@@ -126,7 +126,7 @@ struct Node {
         Postcondition: All connections this Node has with the Node passed in
                        will be returned.
     */
-    std::vector<std::tuple<Node*, double, Unit, Polarity>> getConnectionsToNode(Node* node) const;
+    std::vector<std::tuple<Node*, double, Unit, Polarity>> getConnectionsToNode(Node*) const;
 
     /**
         Description:   Gets all Node KCLTerms.
@@ -145,5 +145,5 @@ struct Node {
         Postcondition: Returns true if the Node have the same ID, false
                        otherwise.
     */
-    bool operator ==(Node other) const;
+    bool operator ==(Node) const;
 };
