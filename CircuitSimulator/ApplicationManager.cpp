@@ -296,7 +296,7 @@ void ApplicationManager::drawComponentPanel() {
 	sf::Text title;
 	title.setFont(DEFAULT_FONT);
 	title.setCharacterSize(DEFAULT_FONT_SIZE + 2);
-	title.setString("Selected Component:");
+	title.setString("Selected Type:");
     title.setFillColor(sf::Color::White);
 	title.setPosition(float(xPos), float(yPos));
 
@@ -317,7 +317,8 @@ void ApplicationManager::drawComponentPanel() {
 
         // If this component type is currently selected, draw a box below it
         // to emphasize this to the user
-        if (type == placingComponentType) {
+        if ((mode == PLACING || mode == PLACING_COMPONENT) && 
+            type == placingComponentType) {
             text.setFillColor({ 40, 40, 40 });
             sf::RectangleShape rect({ 265, 20 });
             rect.setFillColor({ 225, 225, 225 });
