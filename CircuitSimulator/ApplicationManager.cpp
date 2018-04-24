@@ -1,8 +1,19 @@
-﻿#include <iomanip>
-#include <string>
-#include <cmath>
-#include <regex>
-#include <sstream>
+﻿/**
+    Author:             Matthew Olsson
+    File Title:         ApplicationManager.h
+    File Description:   Implements the ApplicationManager class, the class
+                        responsible for handling the application. Primary
+                        tasks are managing the window inputs and outputs, and
+                        coordinating the grid of components.
+    Due Date:           4/25/2018
+    Date Created:       3/16/2018
+    Date Last Modified: 4/23/2018
+*/
+
+#include <iomanip>               // setprecision, fixed, left
+#include <cmath>                 // pow, sqrt
+#include <regex>                 // reg, smatch, regex_search, .size(), .str()
+#include <sstream>               // stringstream class, .str()
 #include "ApplicationManager.h"
 #include "ComponentTypes.h"
 #include "Calculator.h"
@@ -10,7 +21,10 @@
 ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style) :
     window(mode, windowTitle, style) {
 
+    // Intialize Grid
     grid = Grid();
+
+    // Set initialize placing type to wire
     placingComponentType = &WIRE;
 
     // Limit fps to 60
@@ -31,13 +45,16 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 };
 
 void ApplicationManager::update() {
+    // Clear the window and fill the background with BACKGROUND_COLOR
 	window.clear(BACKGROUND_COLOR);
 
+    // Poll for events
 	sf::Event event;
 	while (window.pollEvent(event)) {
 		handleEvent(event);
 	}
 
+    // Draw the state
 	draw();
 	window.display();
 }
@@ -47,6 +64,7 @@ void ApplicationManager::update() {
 ////////////////////////
 
 void ApplicationManager::handleEvent(sf::Event event) {
+    // Direct the events to the proper handler method
 	switch (event.type) {
         case sf::Event::KeyPressed:
             handleKeypress(event.key);
@@ -64,17 +82,21 @@ void ApplicationManager::handleEvent(sf::Event event) {
 }
 
 void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
+    // Extract the keyboard id from the event
     sf::Keyboard::Key key = event.code;
 
     switch (key) {
         case sf::Keyboard::Escape:
+            // Close the window
             window.close();
             break;
         case sf::Keyboard::Up:
         case sf::Keyboard::Down:
+            // Shift the currently selected component type
             shift(placingComponentType, key);
             break;
         case sf::Keyboard::Space:
+            // Toggle between PLACING and SELECTING mode
             if (mode == PLACING)
                 mode = SELECTING;
             else if (mode == SELECTING || mode == SELECTED)
@@ -82,31 +104,43 @@ void ApplicationManager::handleKeypress(sf::Event::KeyEvent event) {
             selectedComponent = nullptr;
             break;
         case sf::Keyboard::C:
+            // Clear all components
             grid.clearComponents();
+            recalculate();
             break;
         case sf::Keyboard::S:
+            // Enter TYPING mode, only if the component is not a wire
             if (mode == SELECTED && selectedComponent->type != &WIRE)
                 mode = TYPING;
             break;
         case sf::Keyboard::D:
-            grid.removeComponent(selectedComponent);
-            selectedComponent = nullptr;
-            recalculate();
+            // Delete the selected components
+            if (mode == SELECTED) {
+                grid.removeComponent(selectedComponent);
+                selectedComponent = nullptr;
+                recalculate();
+            }
             break;
     }
-
-    recalculate();
 }
 
 void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
     if (mode == TYPING) {
+        // Get the key pressed from the event
         char ch = char(event.unicode);
 
         if (ch == 8) {
+            // Backspace. Delete the last character
             input = input.substr(0, input.size() - 1);
-        } else if (ch != 13 && ch != 's') {
+        } else if (ch != 13 && ch != 10 && ch != 's') {
+            // Adds input as long as the characters isn't a new line or 's'. 
+            // This is because the key to activate typing mode is 's', however
+            // every key press sends both a text entered event and a keyboard
+            // press event. We have to ignore 's' inputs or else every input
+            // would start with an 's'.
             input += ch;
         } else if (ch != 's') {
+            // Only option is a newline, indicates user is done entering text
             setSelectedComponentValue(input);
             input = "";
             mode = SELECTED;
@@ -116,15 +150,22 @@ void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
 
 void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 	if ((mode == PLACING || mode == PLACING_COMPONENT) && event.button == sf::Mouse::Left) {
+        // Place a component
+
+        // Get nearest grid spot, this will be the position that the component
+        // is placed.
 		GridSpot* spot = nullptr;
 		sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 		grid.getNearestSpot(mousePos, spot);
 
 		if (mode == PLACING && spot != nullptr) {
+            // Mode is placing; create a new component
 			placingComponent = new Component(placingComponentType);
 			placingComponent->positive = spot;
             mode = PLACING_COMPONENT;
 		} else if (mode == PLACING_COMPONENT && spot != nullptr) {
+            // A component is already in the process of being placed; complete
+            // it
 			placingComponent->negative = spot;
 
 			grid.addComponent(placingComponent);
@@ -132,16 +173,19 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
             placingComponent->positive->components.push_back(placingComponent);
 
             mode = PLACING;
+
+            // The state has changed, so the component values must be updated
+            recalculate();
 		}
+
     } else if ((mode == SELECTING || mode == SELECTED) && event.button == sf::Mouse::Right) {
+        // Select a component, if applicable
         Component* component;
         if (grid.getComponentUnderPosition({ event.x, event.y }, component)) {
             selectedComponent = component;
             mode = SELECTED;
         }
     }
-
-    recalculate();
 }
 
 
@@ -149,15 +193,18 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 // Rendering methods //
 ///////////////////////
 
-// Main rendering methods
 void ApplicationManager::draw() {
+    // Draw the GUI
 	drawGui();
 
+    // Get the component under the mouse. Only used for determining colors of
+    // drawn components.
     Component* comp;
     sf::Vector2i mousePos(sf::Mouse::getPosition(window));
     grid.getComponentUnderPosition(mousePos, comp);
     sf::Color color;
 
+    // Loop over all component and draw them with the appropriate color
 	for (Component* component : grid.getComponents()) {
         if ((mode == SELECTING || mode == SELECTED) && component == selectedComponent)
             color = COMPONENT_SELECTED_COLOR;
@@ -169,6 +216,8 @@ void ApplicationManager::draw() {
         drawComponent(component, color);
 	}
 
+    // If the user is in the middle of placing a component, draw a "dummy"
+    // component to allow the user to visualize what they're placing.
     if (mode == PLACING_COMPONENT) {
         GridSpot* spot;
         if (grid.getNearestSpot(sf::Mouse::getPosition(window), spot)) {
@@ -179,7 +228,7 @@ void ApplicationManager::draw() {
 }
 
 void ApplicationManager::drawGui() {
-	// Draw debug objects
+	// Draw debug objects. TODO: Remove
 	if (false) {
 		// Draw grid spots
 		for (auto row : grid.getSpots()) {
@@ -199,19 +248,21 @@ void ApplicationManager::drawGui() {
     drawInfoPanel();
 
     // Draw border around grid
-    drawRectangleHollow(window,
+    drawRectangleHollow(
         { float(GRID_LEFT_OFFSET), float(GRID_TOP_OFFSET) },
         { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(GRID_TOP_OFFSET) },
         { float(SCREEN_WIDTH - GRID_RIGHT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
         { float(GRID_LEFT_OFFSET), float(SCREEN_HEIGHT - GRID_BOTTOM_OFFSET) },
-        BORDER_COLOR);
+        BORDER_COLOR
+    );
 }
 
 void ApplicationManager::drawTitlePanel() {
     // Draw panel outline
-    drawRectangleHollow(window, PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, 
+    drawRectangleHollow(PANEL_TITLE_1, PANEL_TITLE_2, PANEL_TITLE_3, 
                         PANEL_TITLE_4, BORDER_COLOR);
 
+    // Draw text
     sf::Text title;
     title.setFont(DEFAULT_FONT);
     title.setCharacterSize(DEFAULT_FONT_SIZE + 6);
@@ -224,13 +275,24 @@ void ApplicationManager::drawTitlePanel() {
 }
 
 void ApplicationManager::drawComponentPanel() {
+    sf::Text text;
+    std::string name;
+
+    // The component types will be iterated over, so keep track of the current
+    // position and increment every time one is drawn.
     int xPos = GUI_X_PADDING + 15,
         yPos = GUI_Y_PADDING * 2 + 80;
 
-    // Draw panel outline
-    drawRectangleHollow(window, PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, 
-                        PANEL_COMP_4, BORDER_COLOR);
+    // Construct array to iterate over
+    const ComponentType* types[3] = { &WIRE,
+        &RESISTOR,
+        &VSRC };
 
+    // Draw panel outline
+    drawRectangleHollow(PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, PANEL_COMP_4,
+                        BORDER_COLOR);
+
+    // Draw panel title
 	sf::Text title;
 	title.setFont(DEFAULT_FONT);
 	title.setCharacterSize(DEFAULT_FONT_SIZE + 2);
@@ -242,21 +304,19 @@ void ApplicationManager::drawComponentPanel() {
 
 	yPos += 35;
 
-    // Construct array to iterate over
-    const ComponentType* types[3] = { &WIRE, 
-                                      &RESISTOR, 
-                                      &VSRC };
 
+    // Iterate of the ComponentTypes and display each one
     for (const ComponentType* type : types) {
-        std::string name = type->getName();
+        name = type->getName();
 
-        sf::Text text;
         text.setFont(DEFAULT_FONT);
         text.setCharacterSize(DEFAULT_FONT_SIZE);
         text.setString(name);
         text.setFillColor(sf::Color::White);
         text.setPosition(float(xPos), float(yPos));
 
+        // If this component type is currently selected, draw a box below it
+        // to emphasize this to the user
         if (type == placingComponentType) {
             text.setFillColor({ 40, 40, 40 });
             sf::RectangleShape rect({ 265, 20 });
@@ -272,12 +332,16 @@ void ApplicationManager::drawComponentPanel() {
 }
 
 void ApplicationManager::drawInstructionPanel() {
+    sf::Text title,
+             info;
+    std::string infoStr;
+
     // Draw panel outline
-    drawRectangleHollow(window, PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, 
+    drawRectangleHollow(PANEL_INSTRUCT_1, PANEL_INSTRUCT_2, 
                         PANEL_INSTRUCT_3, PANEL_INSTRUCT_4, BORDER_COLOR);
 
+    // Draw panel title
     std::string titleStr = "Mode: ";
-    sf::Text title;
     title.setFont(DEFAULT_FONT);
     title.setCharacterSize(DEFAULT_FONT_SIZE);
     title.setFillColor(sf::Color::White);
@@ -302,14 +366,11 @@ void ApplicationManager::drawInstructionPanel() {
     title.setString(titleStr);
     window.draw(title);
 
-    // Display help information, such as available key presses
-    sf::Text info;
+    // Display a basic description of the current mode
     info.setFont(DEFAULT_FONT);
     info.setCharacterSize(DEFAULT_FONT_SIZE - 2);
     info.setFillColor(sf::Color::White);
     info.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 3 + 250));
-
-    std::string infoStr;
 
     // Draw different information text depending on the mode
     if (mode == PLACING || mode == PLACING_COMPONENT) {
@@ -332,19 +393,20 @@ void ApplicationManager::drawInstructionPanel() {
     // Display error message if there was a calculation error
     if (error) {
         sf::Texture tex = textures.at(2);
-        sf::Vector2f spritePos1(PANEL_INSTRUCT_4 + sf::Vector2f{ 40.0, -25.0 });
-        sf::Vector2f spritePos2(PANEL_INSTRUCT_3 + sf::Vector2f{ -40.0, -25.0 });
-        sf::Sprite error1, error2;
+        sf::Vector2f spritePos1(PANEL_INSTRUCT_4 + sf::Vector2f{ 40.0, -25.0 }),
+                     spritePos2(PANEL_INSTRUCT_3 + sf::Vector2f{ -40.0, -25.0 });
+        sf::Sprite error1, 
+                   error2;
+        sf::Text warning;
+
         error1.setOrigin(float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0));
         error1.setTexture(tex);
         error1.setPosition(spritePos1);
         error1.setScale(float(1.0 / 6.5), float(1.0 / 6.5));
-        error2.setOrigin(float(tex.getSize().x / 2.0), float(tex.getSize().y / 2.0));
-        error2.setTexture(tex);
-        error2.setPosition(spritePos2);
-        error2.setScale(float(1.0 / 6.5), float(1.0 / 6.5));
 
-        sf::Text warning;
+        error2 = sf::Sprite(error1);
+        error2.setPosition(spritePos2);
+
         warning.setFont(DEFAULT_FONT);
         warning.setCharacterSize(DEFAULT_FONT_SIZE - 3);
         warning.setPosition(spritePos1 + sf::Vector2f{ 30.0, -20.0 });
@@ -362,10 +424,12 @@ void ApplicationManager::drawInstructionPanel() {
 
 void ApplicationManager::drawInfoPanel() {
     // Draw panel outline
-    drawRectangleHollow(window, PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, 
+    drawRectangleHollow(PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, 
                         PANEL_INFO_4, BORDER_COLOR);
 
     if (selectedComponent != nullptr) {
+        // Display component information, including the voltage and current
+        // across it, and its value if it isn't a wire.
         sf::Text title,
                  voltageDrop,
                  ampsThrough;
@@ -378,6 +442,7 @@ void ApplicationManager::drawInfoPanel() {
 
         ss << "Voltage Difference:\n\t" << std::setprecision(3) << std::fixed 
            << selectedComponent->voltageDrop << " V";
+
         voltageDropStr = ss.str();
         // Clear the string stream
         ss.str(std::string());
@@ -385,6 +450,7 @@ void ApplicationManager::drawInfoPanel() {
         ss << "Current Through:\n\t" << std::setprecision(3) << std::fixed 
            << selectedComponent->currentThrough << " A";
         ampsThroughStr = ss.str();
+
         // Clear the string stream
         ss.str(std::string());
 
@@ -413,6 +479,8 @@ void ApplicationManager::drawInfoPanel() {
         window.draw(voltageDrop);
         window.draw(ampsThrough);
 
+        // Check if the component type is a wire so the value part isn't
+        // drawn unnecessarily
         if (selectedComponent->type != &WIRE) {
             ss << "Value:\n\t" << std::setprecision(3) << std::fixed << selectedComponent->value;
 
@@ -431,6 +499,7 @@ void ApplicationManager::drawInfoPanel() {
             window.draw(value);
         }
     } else {
+        // Display simple placeholder message
         sf::Text text;
         text.setFont(DEFAULT_FONT);
         text.setCharacterSize(DEFAULT_FONT_SIZE);
@@ -445,26 +514,36 @@ void ApplicationManager::drawInfoPanel() {
 void ApplicationManager::drawComponent(Component* component, sf::Color color) {
 	sf::Vector2f posSpot = component->positive->getVector();
 	sf::Vector2f negSpot = component->negative->getVector();
+	sf::CircleShape c1(5.0f),
+                    c2;
+    const ComponentType* type;
+    float length,
+          radians;
+    sf::Vector2f offset;
 
-	sf::CircleShape c1(5.0f);
+    // Draw component endpoints
     c1.setOrigin({ 5.0f, 5.0f });
 	c1.setPosition(posSpot);
     c1.setFillColor(color);
     c1.setOutlineColor({ 120, 120, 120 });
 	c1.setOutlineThickness(1.0f);
 
-	sf::CircleShape c2(c1);
+    c2 = sf::CircleShape(c1);
 	c2.setPosition(negSpot);
 
 	window.draw(c1);
 	window.draw(c2);
 
     // Draw actual component
-    const ComponentType* type = component->type;
+    type = component->type;
 
-    float length = float(sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0)));
-    float radians = PI + atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
-    sf::Vector2f offset = { sin(radians), -cos(radians) };
+    // Get length and angle of the component.
+    length = float(sqrt(pow(posSpot.x - negSpot.x, 2.0) + pow(posSpot.y - negSpot.y, 2.0)));
+    radians = PI + atan2(posSpot.y - negSpot.y, posSpot.x - negSpot.x);
+
+    // The rectangle objects like to be off by one pixel at all times. This
+    // vector is added to their position to correct that.
+    offset = { sin(radians), -cos(radians) };
 
     if (type == &WIRE) {
         sf::RectangleShape rect(sf::Vector2f(length, 2.0f));
@@ -477,7 +556,11 @@ void ApplicationManager::drawComponent(Component* component, sf::Color color) {
         sf::Texture tex;
         sf::Vector2f spritePos;
         sf::Sprite sprite;
+        sf::RectangleShape rect1,
+                           rect2;
 
+        // Draw different textures depending on component types (with slightly
+        // different positions)
         if (type == &RESISTOR) {
             tex = textures.at(0);
             spritePos = { posSpot.x - (posSpot.x - negSpot.x) / 2.0f + sin(radians) * float(tex.getSize().x) / 4.0f,
@@ -488,12 +571,12 @@ void ApplicationManager::drawComponent(Component* component, sf::Color color) {
                           posSpot.y - (posSpot.y - negSpot.y) / 2.0f - cos(radians) * float(tex.getSize().y) / 2.0f };
         }
 
-        sf::RectangleShape rect1({ 0.5f * (length - float(tex.getSize().x)), 2.0f });
+        rect1 = sf::RectangleShape({ 0.5f * (length - float(tex.getSize().x)), 2.0f });
         rect1.setFillColor(color);
         rect1.setRotation(radians * 180.0f / PI);
         rect1.setPosition(posSpot + offset);
 
-        sf::RectangleShape rect2(rect1);
+        rect2 = sf::RectangleShape(rect1);
         rect2.setRotation((radians + PI) * 180.0f / PI);
         rect2.setPosition(negSpot + -offset);
 
@@ -509,20 +592,47 @@ void ApplicationManager::drawComponent(Component* component, sf::Color color) {
     }
 }
 
+void ApplicationManager::drawRectangleHollow(sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f p3, sf::Vector2f p4, sf::Color color) {
+    drawLine(p1, p2, color);
+    drawLine(p2, p3, color);
+    drawLine(p3, p4, color);
+    drawLine(p4, p1, color);
+}
+
+void ApplicationManager::drawLine(sf::Vector2f p1, sf::Vector2f p2, sf::Color color) {
+    // Convert vectors to vertices
+    sf::Vertex v1(p1),
+               v2(p2);
+
+    v1.color = color;
+    v2.color = color;
+
+    const sf::Vertex vertices[2] = { v1, v2 };
+    window.draw(vertices, 2, sf::PrimitiveType::Lines);
+}
+
+////////////////////
+// Helper Methods //
+////////////////////
+
 void ApplicationManager::setSelectedComponentValue(std::string input) {
     double val;
     std::string prefix;
-    std::regex reg("^([\\d\\.]+) ?(n|m|k|M|G)?$");
+    std::regex reg("^([\\d\\.]+) ?(n|u|m|k|M|G)?$");
     std::smatch match;
 
+    // Match the input string to the regex validation
     if (std::regex_search(input, match, reg) && match.size() > 1 && selectedComponent != nullptr) {
         val = std::stod(match.str(1));
 
         if (match.size() > 2) {
             prefix = match.str(2);
 
+            // Take units into account when setting the value. 
             if (prefix == "n")
                 val *= pow(10.0, -9.0);
+            else if (prefix == "u")
+                val *= pow(10.0, -6.0);
             else if (prefix == "m")
                 val *= pow(10.0, -3.0);
             else if (prefix == "k")
@@ -533,33 +643,19 @@ void ApplicationManager::setSelectedComponentValue(std::string input) {
                 val *= pow(10.0, 9.0);
         }
 
+        // Update component value
         selectedComponent->value = val;
     }
 }
 
 void ApplicationManager::recalculate() {
+    // Attempt to calculate all voltage and current values for all components
+    // on the grid. Catch and exception and, no matter the exception, display
+    // a warning to the user.
     try {
         Calculator::calculate(grid.getSpots(), grid.getComponents());
         error = false;
     } catch (...) {
         error = true;
     }
-}
-
-void ApplicationManager::drawRectangleHollow(sf::RenderWindow& window, sf::Vector2f p1, sf::Vector2f p2, sf::Vector2f p3, sf::Vector2f p4, sf::Color color) {
-    drawLine(window, p1, p2, color);
-    drawLine(window, p2, p3, color);
-    drawLine(window, p3, p4, color);
-    drawLine(window, p4, p1, color);
-}
-
-void ApplicationManager::drawLine(sf::RenderWindow& window, sf::Vector2f p1, sf::Vector2f p2, sf::Color color) {
-    sf::Vertex v1(p1),
-               v2(p2);
-
-    v1.color = color;
-    v2.color = color;
-
-    const sf::Vertex vertices[2] = { p1, p2 };
-    window.draw(vertices, 2, sf::PrimitiveType::Lines);
 }

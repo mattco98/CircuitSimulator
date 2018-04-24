@@ -3,9 +3,10 @@
 #include <vector>
 #include "Component.h"
 #include "GridSpot.h"
+#include "GridNode.h"
 #include "Node.h"
 
-typedef std::vector< std::vector<GridSpot*> > spot_vec;
+typedef std::vector<std::vector<GridSpot*>> spot_vec;
 
 namespace Calculator {
     bool calculate(spot_vec, std::vector<Component*>);

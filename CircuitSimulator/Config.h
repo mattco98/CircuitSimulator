@@ -1,12 +1,23 @@
+/**
+    Author:             Matthew Olsson
+    File Title:         Config.h
+    File Description:   Declares all constant configuration variables. Enables
+                        multiple files to use the same constants without
+                        redeclaration.
+    Due Date:           4/25/2018
+    Date Created:       3/26/2018
+    Date Last Modified: 4/23/2018
+*/
+
 #pragma once
 
-#include <string>
-#include <SFML/Graphics.hpp>
+#include <string>              // string class
+#include <SFML/Graphics.hpp>   // sf::Color, sf::Vector2f
 
 // General
 extern const float PI;
 
-// APPLICATION
+// Application
 extern const int SCREEN_WIDTH;
 extern const int SCREEN_HEIGHT;
 
@@ -34,14 +45,14 @@ extern const sf::Vector2f PANEL_INFO_2;
 extern const sf::Vector2f PANEL_INFO_3;
 extern const sf::Vector2f PANEL_INFO_4;
 	
-// GRID
+// Grid
 extern const int SPOT_SPACING;
 extern const int GRID_TOP_OFFSET;
 extern const int GRID_BOTTOM_OFFSET;
 extern const int GRID_LEFT_OFFSET;
 extern const int GRID_RIGHT_OFFSET;
 
-// MENU
+// Menu
 extern const sf::Color DEFAULT_COLOR;
 extern const sf::Color WARNING_COLOR;
 extern const sf::Font DEFAULT_FONT;

@@ -13,6 +13,8 @@ const ComponentType RESISTOR("Resistor");
 const ComponentType VSRC("Voltage Source");
 
 void shift(const ComponentType*& type, sf::Keyboard::Key key) {
+    // Shift the type according to the order of components listed above.
+    // Will wrap the type.
     switch (key) {
         case sf::Keyboard::Up:
             if (type == &WIRE) type = &VSRC;

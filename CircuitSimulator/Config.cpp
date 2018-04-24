@@ -1,3 +1,14 @@
+/**
+    Author:             Matthew Olsson
+    File Title:         Config.h
+    File Description:   Implements all constant configuration variables. 
+                        Enables multiple files to use the same constants 
+                        without redeclaration.
+    Due Date:           4/25/2018
+    Date Created:       3/26/2018
+    Date Last Modified: 4/23/2018
+*/
+
 #include "Config.h"
 
 // General
@@ -17,8 +28,8 @@ const int SCREEN_HEIGHT = 900;
 // GUI
 const int GUI_X_PADDING = 30;
 const int GUI_Y_PADDING = 30;
-const sf::Color BACKGROUND_COLOR = sf::Color(32, 34, 37);
-const sf::Color BORDER_COLOR = sf::Color(200, 200, 200);
+const sf::Color BACKGROUND_COLOR = { 32, 34, 37 };
+const sf::Color BORDER_COLOR = { 200, 200, 200 };
 
 // Panel
 const sf::Vector2f PANEL_TITLE_1    = { float(GUI_X_PADDING), float(GUI_Y_PADDING) };
@@ -46,12 +57,12 @@ const int GRID_LEFT_OFFSET = 350;
 const int GRID_RIGHT_OFFSET = GUI_X_PADDING;
 
 // MENU
-const sf::Color DEFAULT_COLOR = sf::Color(225, 225, 225);
-const sf::Color WARNING_COLOR = sf::Color(239, 124, 124);
+const sf::Color DEFAULT_COLOR = { 225, 225, 225 };
+const sf::Color WARNING_COLOR = { 239, 124, 124 };
 const sf::Font DEFAULT_FONT = getDefaultFont();
 const unsigned int DEFAULT_FONT_SIZE = 18;
 
 // Components
-const sf::Color COMPONENT_COLOR(170, 170, 170);
-const sf::Color COMPONENT_HOVER_COLOR(255, 255, 255);
-const sf::Color COMPONENT_SELECTED_COLOR(64, 224, 208);
+const sf::Color COMPONENT_COLOR = { 170, 170, 170 };
+const sf::Color COMPONENT_HOVER_COLOR = { 255, 255, 255 };
+const sf::Color COMPONENT_SELECTED_COLOR = { 64, 224, 208 };
