@@ -181,7 +181,8 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
     } else if ((mode == SELECTING || mode == SELECTED) && event.button == sf::Mouse::Right) {
         // Select a component, if applicable
         Component* component;
-        if (grid.getComponentUnderPosition({ event.x, event.y }, component)) {
+        if (grid.getComponentUnderPosition({ event.x, event.y }, component) && 
+            component->type != &WIRE) {
             selectedComponent = component;
             mode = SELECTED;
         }
@@ -208,7 +209,8 @@ void ApplicationManager::draw() {
 	for (Component* component : grid.getComponents()) {
         if ((mode == SELECTING || mode == SELECTED) && component == selectedComponent)
             color = COMPONENT_SELECTED_COLOR;
-        else if ((mode == SELECTING || mode == SELECTED) && component == comp)
+        else if ((mode == SELECTING || mode == SELECTED) && component == comp
+                 && component->type != &WIRE)
             color = COMPONENT_HOVER_COLOR;
         else
             color = COMPONENT_COLOR;
@@ -429,7 +431,7 @@ void ApplicationManager::drawInfoPanel() {
     drawRectangleHollow(PANEL_INFO_1, PANEL_INFO_2, PANEL_INFO_3, 
                         PANEL_INFO_4, BORDER_COLOR);
 
-    if (selectedComponent != nullptr) {
+    if (selectedComponent != nullptr && selectedComponent->type != &WIRE) {
         // Display component information, including the voltage and current
         // across it, and its value if it isn't a wire.
         sf::Text title,
