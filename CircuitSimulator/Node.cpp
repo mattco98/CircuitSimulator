@@ -27,10 +27,11 @@ void Node::removeConnection(Node* node, double value, Unit type, Polarity polari
     // Nodes can have multiples connections that are the same (eg: Two 
     // five-ohm resistors connected in the same direction from one node to
     // another).
-    for (int i = 0; i < connections.size(); i++) {
+    bool found = false;
+    for (int i = 0; i < connections.size() && !found; i++) {
         if (connections[i] == std::make_tuple(node, value, type, polarity)) {
             connections.erase(connections.begin() + i);
-            return;
+            found = true;
         }
     }
 }
@@ -41,10 +42,11 @@ void Node::removeConnection(std::tuple<Node*, double, Unit, Polarity> t) {
     // Nodes can have multiples connections that are the same (eg: Two 
     // five-ohm resistors connected in the same direction from one node to
     // another).
-    for (int i = 0; i < connections.size(); i++) {
+    bool found = false;
+    for (int i = 0; i < connections.size() && !found; i++) {
         if (connections[i] == t) {
             connections.erase(connections.begin() + i);
-            return;
+            found = true;
         }
     }
 }
@@ -71,6 +73,7 @@ std::vector<std::tuple<Node*, double, Unit, Polarity>> Node::getConnectionsToNod
         if (std::get<0>(t)->id == node->id)
             connects.push_back(t);
     }
+
     return connects;
 }
 
@@ -119,11 +122,13 @@ bool Node::operator ==(Node other) const {
 }
 
 Polarity operator !(Polarity pol) {
+    Polarity notPol = Polarity::UNKNOWN;
+
     if (pol == Polarity::POSITIVE) {
-        return Polarity::NEGATIVE;
+        notPol = Polarity::NEGATIVE;
     } else if (pol == Polarity::NEGATIVE) {
-        return Polarity::POSITIVE;
-    } else {
-        return Polarity::UNKNOWN;
+        notPol = Polarity::POSITIVE;
     }
+
+    return notPol;
 }

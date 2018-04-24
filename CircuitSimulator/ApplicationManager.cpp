@@ -285,8 +285,8 @@ void ApplicationManager::drawComponentPanel() {
 
     // Construct array to iterate over
     const ComponentType* types[3] = { &WIRE,
-        &RESISTOR,
-        &VSRC };
+                                      &RESISTOR,
+                                      &VSRC };
 
     // Draw panel outline
     drawRectangleHollow(PANEL_COMP_1, PANEL_COMP_2, PANEL_COMP_3, PANEL_COMP_4,
@@ -361,6 +361,7 @@ void ApplicationManager::drawInstructionPanel() {
             break;
         case TYPING:
             titleStr += "Setting Value";
+            break;
     }
 
     title.setString(titleStr);

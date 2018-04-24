@@ -40,61 +40,89 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
             components[i]->currentThrough = 0.0;
             components[i]->voltageDrop = 0.0;
         }
+    } else {
 
-        return false;
-    }
+        // Get Nodes from the circuit
+        std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
+        std::vector<Node> nodes = convertGridNodesToNodes(&gridNodes);
+        std::vector<Node> reducedNodes = reduceNodes(nodes);
 
-    // Get Nodes from the circuit
-    std::vector<GridNode> gridNodes = getGridNodes(populatedSpots);
-    std::vector<Node> nodes = convertGridNodesToNodes(&gridNodes);
-    std::vector<Node> reducedNodes = reduceNodes(nodes);
+        // Begin the process of populating a matrix to solve for the 
+        // node voltages
 
-    // Begin the process of populating a matrix to solve for the 
-    // node voltages
+        arma::mat kcl(nodes.size(), nodes.size());
+        arma::mat coeff(nodes.size(), 1);
 
-    arma::mat kcl(nodes.size(), nodes.size());
-    arma::mat coeff(nodes.size(), 1);
+        kcl.fill(0.0);
+        coeff.fill(0.0);
 
-    kcl.fill(0.0);
-    coeff.fill(0.0);
+        // In order to properly perform nodal analysis, one of the nodes must
+        // be grounded. The node that gets grounded is completely arbitrary,
+        // so here it is always the first node (node 0). The only side effect
+        // is that some nodes may have negative voltage, but it is trivial to
+        // "normalize" the voltages after they are calculated.
+        const int GROUND = 0;
 
-    // In order to properly perform nodal analysis, one of the nodes must
-    // be grounded. The node that gets grounded is completely arbitrary,
-    // so here it is always the first node (node 0). The only side effect
-    // is that some nodes may have negative voltage, but it is trivial to
-    // "normalize" the voltages after they are calculated.
-    const int GROUND = 0;
+        // There are exactly "nodes.size()" number of equations. Since some equations
+        // come from doing KCL at nodes and some come from voltage source relations,
+        // the current row of the matrix that is being populated must be tracked,
+        // especially after this initial loop has completed.
+        int row = 0;
 
-    // There are exactly "nodes.size()" number of equations. Since some equations
-    // come from doing KCL at nodes and some come from voltage source relations,
-    // the current row of the matrix that is being populated must be tracked,
-    // especially after this initial loop has completed.
-    int row = 0;
+        // Every voltage source has two nodes attached to it, however only one
+        // KCL equation can be derived from these two. To avoid populating the 
+        // matrix with duplicate roww, the nodes that get considered as a 
+        // consequence of considering the current node must be tracked and
+        // excluded from the following process
+        std::vector<Node*> excludedNodes;
 
-    // Every voltage source has two nodes attached to it, however only one
-    // KCL equation can be derived from these two. To avoid populating the 
-    // matrix with duplicate roww, the nodes that get considered as a 
-    // consequence of considering the current node must be tracked and
-    // excluded from the following process
-    std::vector<Node*> excludedNodes;
+        // Loop through the nodes and get every possible KCL equation
+        for (Node node : reducedNodes) {
+            if (node.id == GROUND) {
+                // The voltage at the ground is 0
+                kcl(row, GROUND) = 1;
 
-    // Loop through the nodes and get every possible KCL equation
-    for (Node node : reducedNodes) {
-        if (node.id == GROUND) {
-            // The voltage at the ground is 0
-            kcl(row, GROUND) = 1;
+                // Normally, when looking at a non-GROUND node, the nodes are examined
+                // and excludedNodes is properly populated if the program runs across
+                // any voltage sources. That is done here.
+                for (auto connection : node.connections) {
+                    if (std::get<2>(connection) == Unit::VOLT) {
+                        excludedNodes.push_back(std::get<0>(connection));
+                    }
+                }
 
-            // Normally, when looking at a non-GROUND node, the nodes are examined
-            // and excludedNodes is properly populated if the program runs across
-            // any voltage sources. That is done here.
-            for (auto connection : node.connections) {
-                if (std::get<2>(connection) == Unit::VOLT) {
-                    excludedNodes.push_back(std::get<0>(connection));
+                row++;
+            } else {
+                bool consider = true;
+                for (Node* excludedNode : excludedNodes) {
+                    if (excludedNode->id == node.id)
+                        consider = false;
+                }
+
+                if (consider) {
+                    for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
+                        // The term.res (aka resistance of the resistor) corresponds to a 
+                        // particular node. By the nature of the way KCL equations are
+                        // derived, we need to keep track of the inverses of these 
+                        // resistances. The sums of the inverses of the resistances is
+                        // what the matrix will be populated with. Negative polarity 
+                        // nodes will have their inverse sum negated.
+                        kcl(row, term.pos) += 1.0 / term.res * (term.out ? -1.0 : 1.0);
+                        kcl(row, term.neg) += -1.0 / term.res * (term.out ? -1.0 : 1.0);
+                    }
+
+                    row++;
                 }
             }
+        }
 
-            row++;
-        } else {
+        // Loop through the nodes again, this time looking specifically for voltage
+        // sources. Each voltage source provides a direct voltage relationship 
+        // between its two nodes, and they are added to the matrices here. The
+        // excluded nodes vector is re-used.
+        excludedNodes.clear();
+
+        for (Node node : reducedNodes) {
             bool consider = true;
             for (Node* excludedNode : excludedNodes) {
                 if (excludedNode->id == node.id)
@@ -102,135 +130,106 @@ bool Calculator::calculate(spot_vec spots, std::vector<Component*> components) {
             }
 
             if (consider) {
-                for (KCLTerm term : node.getTerms(nullptr, excludedNodes)) {
-                    // The term.res (aka resistance of the resistor) corresponds to a 
-                    // particular node. By the nature of the way KCL equations are
-                    // derived, we need to keep track of the inverses of these 
-                    // resistances. The sums of the inverses of the resistances is
-                    // what the matrix will be populated with. Negative polarity 
-                    // nodes will have their inverse sum negated.
-                    kcl(row, term.pos) += 1.0 / term.res * (term.out ? -1.0 : 1.0);
-                    kcl(row, term.neg) += -1.0 / term.res * (term.out ? -1.0 : 1.0);
-                }
+                for (auto connection : node.connections) {
+                    if (std::get<2>(connection) == Unit::VOLT) {
+                        int pos,
+                            neg;
 
-                row++;
-            }
-        }
-    }
+                        if (std::get<3>(connection) == Polarity::POSITIVE) {
+                            pos = node.id;
+                            neg = std::get<0>(connection)->id;
+                        } else {
+                            pos = std::get<0>(connection)->id;
+                            neg = node.id;
+                        }
 
-    // Loop through the nodes again, this time looking specifically for voltage
-    // sources. Each voltage source provides a direct voltage relationship 
-    // between its two nodes, and they are added to the matrices here. The
-    // excluded nodes vector is re-used.
-    excludedNodes.clear();
+                        // In a direct voltage node equation, the relationship
+                        // looks something along the lines of NODE1 - NODE2 = X,
+                        // where NODE1 is the positive voltage terminal, NODE2
+                        // is the negative voltage terminal, and X is the value
+                        // of the voltage source. In a matrix, this means that
+                        // the positive node has a weight of 1, the negative node
+                        // a weight of -1, and an additional weight in the
+                        // coefficient matrix.
+                        kcl(row, pos) = 1.0;
+                        kcl(row, neg) = -1.0;
+                        coeff(row) = std::get<1>(connection);
 
-    for (Node node : reducedNodes) {
-        bool consider = true;
-        for (Node* excludedNode : excludedNodes) {
-            if (excludedNode->id == node.id)
-                consider = false;
-        }
+                        // Exclude the other node connected to this voltage source
+                        // to avoid duplicate matrix entries.
+                        excludedNodes.push_back(std::get<0>(connection));
 
-        if (consider) {
-            for (auto connection : node.connections) {
-                if (std::get<2>(connection) == Unit::VOLT) {
-                    int pos,
-                        neg;
-
-                    if (std::get<3>(connection) == Polarity::POSITIVE) {
-                        pos = node.id;
-                        neg = std::get<0>(connection)->id;
-                    } else {
-                        pos = std::get<0>(connection)->id;
-                        neg = node.id;
+                        row++;
                     }
-
-                    // In a direct voltage node equation, the relationship
-                    // looks something along the lines of NODE1 - NODE2 = X,
-                    // where NODE1 is the positive voltage terminal, NODE2
-                    // is the negative voltage terminal, and X is the value
-                    // of the voltage source. In a matrix, this means that
-                    // the positive node has a weight of 1, the negative node
-                    // a weight of -1, and an additional weight in the
-                    // coefficient matrix.
-                    kcl(row, pos) = 1.0;
-                    kcl(row, neg) = -1.0;
-                    coeff(row) = std::get<1>(connection);
-
-                    // Exclude the other node connected to this voltage source
-                    // to avoid duplicate matrix entries.
-                    excludedNodes.push_back(std::get<0>(connection));
-
-                    row++;
                 }
             }
         }
-    }
 
-    // Multiply the inverse kcl matrix by the coeff matrix to get the
-    // solution voltages.
-    arma::mat solution = kcl.i() * coeff;
+        // Multiply the inverse kcl matrix by the coeff matrix to get the
+        // solution voltages.
+        arma::mat solution = kcl.i() * coeff;
 
-    // Because our grounding point was arbitrary, some voltage may be negative.
-    // This is easily fixed by subtracting the lowest value from all solution
-    // matrix entries
-    double min = solution.min();
+        // Because our grounding point was arbitrary, some voltage may be negative.
+        // This is easily fixed by subtracting the lowest value from all solution
+        // matrix entries
+        double min = solution.min();
 
-    // Subtract min value from each element with a simple lambda function.
-    solution.for_each([min](arma::mat::elem_type& val) { val -= min; });
+        // Subtract min value from each element with a simple lambda function.
+        solution.for_each([min](arma::mat::elem_type& val) { val -= min; });
 
-    // Set the node voltage from the solution matrix. Because the matrices were
-    // specifically ordered to match the node ids, the values in the first 
-    // column correspond to the first node, the second column the second node,
-    // etc.
-    for (int i = 0; i < solution.n_rows; i++) {
-        nodes[i].voltage = solution.at(i, 0);
-    }
+        // Set the node voltage from the solution matrix. Because the matrices were
+        // specifically ordered to match the node ids, the values in the first 
+        // column correspond to the first node, the second column the second node,
+        // etc.
+        for (int i = 0; i < solution.n_rows; i++) {
+            nodes[i].voltage = solution.at(i, 0);
+        }
 
-    // Start the process of turning node voltage into component voltages and currents.
-    // On first pass, the current and voltage of every resistor is calculated.
-    for (Component* component : components) {
-        if (component->type == &RESISTOR) {
-            std::pair<GridNode, GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
-            std::pair<Node, Node> compNodes;
+        // Start the process of turning node voltage into component voltages and currents.
+        // On first pass, the current and voltage of every resistor is calculated.
+        for (Component* component : components) {
+            if (component->type == &RESISTOR) {
+                std::pair<GridNode, GridNode> compGridNodes = getGridNodesFromComponent(gridNodes, component);
+                std::pair<Node, Node> compNodes;
 
-            for (Node tNode : nodes) {
-                if (tNode.id == compGridNodes.first.id)
-                    compNodes.first = tNode;
-                else if (tNode.id == compGridNodes.second.id)
-                    compNodes.second = tNode;
+                for (Node tNode : nodes) {
+                    if (tNode.id == compGridNodes.first.id)
+                        compNodes.first = tNode;
+                    else if (tNode.id == compGridNodes.second.id)
+                        compNodes.second = tNode;
+                }
+
+                // compNodes.first will always be the positive node, and 
+                // compNodes.second the negative
+                double voltage = compNodes.first.voltage - compNodes.second.voltage;
+                double current = voltage / component->value;
+
+                component->voltageDrop = voltage;
+                component->currentThrough = current;
             }
+        }
 
-            // compNodes.first will always be the positive node, and 
-            // compNodes.second the negative
-            double voltage = compNodes.first.voltage - compNodes.second.voltage;
-            double current = voltage / component->value;
+        // The voltage sources are handled second, as, in order to find the current through
+        // them, the current through all connected resistors must be known.
+        for (Component* component : components) {
+            if (component->type == &VSRC) {
+                // Voltage drop across a vsrc is just its value
+                component->voltageDrop = component->value;
 
-            component->voltageDrop = voltage;
-            component->currentThrough = current;
+                std::vector<Component*> resistors = getVoltageInputs(component);
+
+                double currentSum = 0;
+
+                // Sum up current inputs into the voltage source
+                for (Component* resistor : resistors)
+                    currentSum += resistor->currentThrough;
+
+                component->currentThrough = currentSum;
+            }
         }
     }
 
-    // The voltage sources are handled second, as, in order to find the current through
-    // them, the current through all connected resistors must be known.
-    for (Component* component : components) {
-        if (component->type == &VSRC) {
-            // Voltage drop across a vsrc is just its value
-            component->voltageDrop = component->value;
-
-            std::vector<Component*> resistors = getVoltageInputs(component);
-
-            double currentSum = 0;
-
-            // Sum up current inputs into the voltage source
-            for (Component* resistor : resistors) 
-                currentSum += resistor->currentThrough;
-
-            component->currentThrough = currentSum;
-        }
-    }
-
-    return true;
+    return isCompleteCircuit && populatedSpots.size() != 0;
 }
 
 std::vector<GridNode> Calculator::getGridNodes(std::vector<GridSpot*> spots) {
@@ -390,9 +389,6 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
     auto node1Tuples = node1->getConnectionsToNode(node2);
     auto node2Tuples = node2->getConnectionsToNode(node1);
 
-    if (node1Tuples.size() == 0 && node2Tuples.size() == 0)
-        return;
-
     if (node1Tuples.size() != node2Tuples.size())
         throw std::runtime_error("Nodes do not share an equal amount of connections");
 
@@ -415,13 +411,14 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
                 node1->removeConnection(t1);
 
                 // Search for matching connection from node2 to node1
+                bool found = false;
                 for (auto t2 : node2Tuples) {
                     if (std::get<0>(t2)->id == node1->id &&
                         std::get<1>(t2) == std::get<1>(t1) &&
-                        std::get<2>(t2) == std::get<2>(t1) && 
-                        std::get<3>(t2) == !std::get<3>(t1)) {
+                        std::get<2>(t2) == std::get<2>(t1) &&
+                        std::get<3>(t2) == !std::get<3>(t1) && !found) {
                         node2->removeConnection(t2);
-                        break;
+                        found = true;
                     }
                 }
 
@@ -439,7 +436,7 @@ void Calculator::reduceNodeConnection(Node* node1, Node* node2) {
         if (numVolts > 1)
             throw std::runtime_error("Voltage sources cannot be in parallel "
                                      "with each other");
-        
+
         // Add equivalent resistor connection
         if (!(fabs(eqOhms) <= 1e-5)) {
             eqOhms = 1.0 / eqOhms;
