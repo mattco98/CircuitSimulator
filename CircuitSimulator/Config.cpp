@@ -17,7 +17,7 @@ const float PI = 3.141592f;
 // Get default font
 sf::Font getDefaultFont() {
 	sf::Font font;
-	font.loadFromFile("Menlo.ttf");
+	font.loadFromFile("assets/Menlo.ttf");
 	return font;
 };
 

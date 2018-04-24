@@ -105,5 +105,8 @@
     <Image Include="vsrc.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="error.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

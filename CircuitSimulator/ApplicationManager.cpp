@@ -35,9 +35,9 @@ ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTit
 				vSrc,
                 error;
 
-    resistor.loadFromFile("resistor.png");
-    vSrc.loadFromFile("vsrc.png");
-    error.loadFromFile("error.png");
+    resistor.loadFromFile("assets/resistor.png");
+    vSrc.loadFromFile("assets/vsrc.png");
+    error.loadFromFile("assets/error.png");
 
 	textures.push_back(resistor);
 	textures.push_back(vSrc);

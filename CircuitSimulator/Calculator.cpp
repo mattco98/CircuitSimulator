@@ -473,8 +473,8 @@ GridNode Calculator::getGridNodeFromSpot(std::vector<GridNode> gridNodes, GridSp
 
 std::vector<Component*> Calculator::getVoltageInputs(Component* component, std::vector<Component*> resistors, int depth) {
     // Avoid stack overflows due to recursion
-    if (depth > 100)
-        throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 100");
+    if (depth > 10)
+        throw std::runtime_error("Calculator::getVoltageInputs: Recursed past 10");
 
     // Get all connections component and merge into one vector
     std::vector<Component*> posComps = component->positive->components,

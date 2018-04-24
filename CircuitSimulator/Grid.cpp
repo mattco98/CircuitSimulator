@@ -72,17 +72,16 @@ bool Grid::getNearestSpot(sf::Vector2i mousePos, GridSpot*& spot) const {
 
 bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component*& nearestComp) const {
     double x,
-           y,
-           dx,
-           dy;
+        y,
+        dx,
+        dy;
     GridSpot* spot1;
     GridSpot* spot2;
     Component* component;
-    bool found = false;
 
     // Iterate through all components and check if the mouse position is within
     // 14 pixels of that component
-    for (int i = 0; i < components.size() && !found; i++) {
+    for (int i = 0; i < components.size(); i++) {
         component = components.at(i);
 
         spot1 = component->positive;
@@ -91,15 +90,15 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component*& nearestComp) 
         x = double(spot1->x);
         y = double(spot1->y);
 
-        dx = (spot2->x - x) / 40.0;
-        dy = (spot2->y - y) / 10.0;
+        dx = (spot2->x - x) / 30.0;
+        dy = (spot2->y - y) / 30.0;
 
         // Loop along the line that the component forms
-        for (int j = 0; j < 40 && !found; j++) {
+        for (int j = 0; j < 40; j++) {
             if (fabs(x - double(pos.x)) < 14.0 && fabs(y - double(pos.y)) < 14.0) {
                 // The mouse is within 14 pixels of this component
                 nearestComp = component;
-                found = true;
+                return true;
             }
 
             x += dx;
@@ -107,7 +106,7 @@ bool Grid::getComponentUnderPosition(sf::Vector2i pos, Component*& nearestComp) 
         }
     }
 
-    return found;
+    return false;
 }
 
 void Grid::clearComponents() {

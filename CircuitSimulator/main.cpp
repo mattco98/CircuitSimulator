@@ -9,8 +9,14 @@
 	Date Last Modified:     4/23/2018
 */
 
+#include <iostream>
 #include "ApplicationManager.h"
 #include "Config.h"
+
+// Resolve Visual Studio linker bug by defining legacy function required
+// to compile.
+// https://stackoverflow.com/questions/30412951/unresolved-external-symbol-imp-fprintf-and-imp-iob-func-sdl2
+extern "C" { FILE __iob_func[3] = { *stdin, *stdout, *stderr }; }
 
 int main() {
     // Open an instance of the application

@@ -47,7 +47,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -76,6 +76,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>D:\Software\Libraries\armadillo\include;D:\Software\Libraries\SFML\SFML-src\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\Software\Libraries\armadillo\examples\lib_win64;D:\Software\Libraries\SFML\SFML-build\lib\Debug;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>D:\Software\Libraries\SFML\SFML-src\include;D:\Software\Libraries\armadillo\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\Software\Libraries\SFML\SFML\extlibs\libs-msvc\x64;D:\Software\Libraries\SFML\SFML-static\lib\Release;D:\Software\Libraries\armadillo\examples\lib_win64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -122,10 +126,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>sfml-audio-s.lib;sfml-graphics-s.lib;sfml-main.lib;sfml-network-s.lib;sfml-system-s.lib;sfml-window-s.lib;blas_win64_MT.lib;lapack_win64_MT.lib;winmm.lib;ws2_32.lib;flac.lib;freetype.lib;jpeg.lib;ogg.lib;openal32.lib;opengl32.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -153,6 +161,7 @@
     <Font Include="Menlo.ttf" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="error.png" />
     <Image Include="resistor.png" />
     <Image Include="vsrc.png" />
   </ItemGroup>
