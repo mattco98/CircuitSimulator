@@ -28,7 +28,7 @@ const int SCREEN_HEIGHT = 900;
 // GUI
 const int GUI_X_PADDING = 30;
 const int GUI_Y_PADDING = 30;
-const sf::Color BACKGROUND_COLOR = { 32, 34, 37 };
+const sf::Color BACKGROUND_COLOR = { 40, 40, 45 };
 const sf::Color BORDER_COLOR = { 200, 200, 200 };
 
 // Panel

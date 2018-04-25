@@ -324,9 +324,10 @@ class ApplicationManager {
         void setSelectedComponentValue(std::string);
 
         /**
-            Description:   Recalculates all component values. A simple one-line
-                           function that passes the component and grid spots
-                           to Calculate::calculate.
+            Description:   Recalculates all component values. Catches any
+                           errors that are thrown when calculating the circuit,
+                           and enables the application's error state if this
+                           occurs.
             Returns:       void
             Precondition:  This object exists.
             Postcondition: The application and the user's display will have
