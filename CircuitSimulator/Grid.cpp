@@ -14,9 +14,9 @@
 #include "Grid.h"
 #include "Config.h"
 
-Grid::Grid() {
-	width = SCREEN_WIDTH - GRID_LEFT_OFFSET - GRID_RIGHT_OFFSET;
-	height = SCREEN_HEIGHT - GRID_TOP_OFFSET - GRID_BOTTOM_OFFSET;
+Grid::Grid(int appWidth, int appHeight) {
+	width = appWidth - GRID_LEFT_OFFSET - GRID_RIGHT_OFFSET;
+	height = appHeight - GRID_TOP_OFFSET - GRID_BOTTOM_OFFSET;
 
     // Calculate total number of spots in each direction
     numSpotsHorz = width / SPOT_SPACING;

@@ -41,7 +41,19 @@ class Grid {
                            and the spots array will be filled with enough spots
                            to fill the grid dimensions.
         */
-		Grid();
+        Grid() = default;
+
+        /**
+            Description:   Initializes a Grid object with the provided width
+                           and height.
+            Return:        None
+            Precondition:  None
+            Postcondition: A Grid object will be initialized. width and height
+                           will be set to the size specified in Config.cpp,
+                           and the spots array will be filled with enough spots
+                           to fill the grid dimensions.
+        */
+		Grid(int, int);
 
         /**
             Description:   Returns the components vector.

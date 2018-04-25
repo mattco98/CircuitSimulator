@@ -10,6 +10,7 @@
     Date Last Modified: 4/23/2018
 */
 
+#include <iostream> // TODO remove
 #include <iomanip>               // setprecision, fixed, left
 #include <cmath>                 // pow, sqrt
 #include <regex>                 // reg, smatch, regex_search, .size(), .str()
@@ -20,9 +21,11 @@
 
 ApplicationManager::ApplicationManager(sf::VideoMode mode, std::string windowTitle, sf::Uint32 style) :
     window(mode, windowTitle, style) {
+    // Set config values
+    set(1600, 900);
 
     // Intialize Grid
-    grid = Grid();
+    grid = Grid(SCREEN_WIDTH, SCREEN_HEIGHT);
 
     // Set initialize placing type to wire
     placingComponentType = &WIRE;
@@ -75,6 +78,9 @@ void ApplicationManager::handleEvent(sf::Event event) {
 		case sf::Event::MouseButtonPressed:
 			handleMousePressed(event.mouseButton);
 			break;
+        case sf::Event::Resized:
+            handleResized(event.size);
+            break;
 		case sf::Event::Closed:
             window.close();
 			break;
@@ -189,6 +195,19 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
     }
 }
 
+void ApplicationManager::handleResized(sf::Event::SizeEvent event) {
+    // Set SFML window view
+    window.setView(sf::View(sf::FloatRect(0, 0, event.width, event.height)));
+
+    // Recalculate Config values
+    set(event.width, event.height);
+    std::cout << "WIDTH: " << SCREEN_WIDTH << std::endl;
+
+    // Redraw grid
+    grid = Grid(event.width, event.height);
+    placingComponent = nullptr;
+    selectedComponent = nullptr;
+}
 
 ///////////////////////
 // Rendering methods //

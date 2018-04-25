@@ -175,6 +175,18 @@ class ApplicationManager {
         */
 		void handleMousePressed(sf::Event::MouseButtonEvent);
 
+        /**
+            Description:   Handles all incoming resized events. Triggered
+                           whenever the user resizes the application.
+            Returns:       void
+            Precondition:  This object exists. The provided event has been
+                           correctly polled from SFML's input buffer.
+            Postcondition: The application and the user's display will have 
+                           been updated depending on the new window dimensions.
+                           The argument will not be modified.
+        */
+        void handleResized(sf::Event::SizeEvent);
+
 
 		///////////////////////
 		// Rendering methods //

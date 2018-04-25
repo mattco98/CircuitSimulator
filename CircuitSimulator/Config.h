@@ -17,9 +17,11 @@
 // General
 extern const float PI;
 
+extern void set(int width, int height);
+
 // Application
-extern const int SCREEN_WIDTH;
-extern const int SCREEN_HEIGHT;
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
 
 // GUI
 extern const int GUI_X_PADDING;
@@ -28,22 +30,22 @@ extern const sf::Color BACKGROUND_COLOR;
 extern const sf::Color BORDER_COLOR;
 
 // Panel border bounds
-extern const sf::Vector2f PANEL_TITLE_1;
-extern const sf::Vector2f PANEL_TITLE_2;
-extern const sf::Vector2f PANEL_TITLE_3;
-extern const sf::Vector2f PANEL_TITLE_4;
-extern const sf::Vector2f PANEL_COMP_1;
-extern const sf::Vector2f PANEL_COMP_2;
-extern const sf::Vector2f PANEL_COMP_3;
-extern const sf::Vector2f PANEL_COMP_4;
-extern const sf::Vector2f PANEL_INSTRUCT_1;
-extern const sf::Vector2f PANEL_INSTRUCT_2;
-extern const sf::Vector2f PANEL_INSTRUCT_3;
-extern const sf::Vector2f PANEL_INSTRUCT_4;
-extern const sf::Vector2f PANEL_INFO_1;
-extern const sf::Vector2f PANEL_INFO_2;
-extern const sf::Vector2f PANEL_INFO_3;
-extern const sf::Vector2f PANEL_INFO_4;
+extern sf::Vector2f PANEL_TITLE_1;
+extern sf::Vector2f PANEL_TITLE_2;
+extern sf::Vector2f PANEL_TITLE_3;
+extern sf::Vector2f PANEL_TITLE_4;
+extern sf::Vector2f PANEL_COMP_1;
+extern sf::Vector2f PANEL_COMP_2;
+extern sf::Vector2f PANEL_COMP_3;
+extern sf::Vector2f PANEL_COMP_4;
+extern sf::Vector2f PANEL_INSTRUCT_1;
+extern sf::Vector2f PANEL_INSTRUCT_2;
+extern sf::Vector2f PANEL_INSTRUCT_3;
+extern sf::Vector2f PANEL_INSTRUCT_4;
+extern sf::Vector2f PANEL_INFO_1;
+extern sf::Vector2f PANEL_INFO_2;
+extern sf::Vector2f PANEL_INFO_3;
+extern sf::Vector2f PANEL_INFO_4;
 	
 // Grid
 extern const int SPOT_SPACING;
