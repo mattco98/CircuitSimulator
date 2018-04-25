@@ -507,21 +507,21 @@ void ApplicationManager::drawInfoPanel() {
         title.setFillColor(sf::Color::White);
         title.setString(titleStr);
         title.setPosition(float(GUI_X_PADDING + 15), 
-                          float(GUI_Y_PADDING * 4 + 540));
+                          float(SCREEN_HEIGHT - GUI_Y_PADDING - 210));
 
         voltageDrop.setFont(DEFAULT_FONT);
         voltageDrop.setCharacterSize(DEFAULT_FONT_SIZE - 2);
         voltageDrop.setFillColor(sf::Color::White);
         voltageDrop.setString(voltageDropStr);
         voltageDrop.setPosition(float(GUI_X_PADDING + 15), 
-                                float(GUI_Y_PADDING * 4 + 590));
+                                float(SCREEN_HEIGHT - GUI_Y_PADDING -160));
 
         ampsThrough.setFont(DEFAULT_FONT);
         ampsThrough.setCharacterSize(DEFAULT_FONT_SIZE - 2);
         ampsThrough.setFillColor(sf::Color::White);
         ampsThrough.setString(ampsThroughStr);
         ampsThrough.setPosition(float(GUI_X_PADDING + 15), 
-                                float(GUI_Y_PADDING * 4 + 640));
+                                float(SCREEN_HEIGHT - GUI_Y_PADDING - 110));
 
         window.draw(title);
         window.draw(voltageDrop);
@@ -542,7 +542,7 @@ void ApplicationManager::drawInfoPanel() {
             value.setCharacterSize(DEFAULT_FONT_SIZE - 2);
             value.setFillColor(sf::Color::White);
             value.setString(ss.str());
-            value.setPosition(float(GUI_X_PADDING + 15), float(GUI_Y_PADDING * 4 + 690));
+            value.setPosition(float(GUI_X_PADDING + 15), float(SCREEN_HEIGHT - GUI_Y_PADDING - 60));
 
             window.draw(value);
         }
@@ -553,7 +553,7 @@ void ApplicationManager::drawInfoPanel() {
         text.setCharacterSize(DEFAULT_FONT_SIZE);
         text.setString("No Component Selected");
         text.setFillColor(sf::Color::White);
-        text.setPosition(float(GUI_X_PADDING + 30), float(GUI_Y_PADDING * 4 + 610));
+        text.setPosition(float(GUI_X_PADDING + 30), float(SCREEN_HEIGHT - GUI_Y_PADDING - 140));
 
         window.draw(text);
     }
