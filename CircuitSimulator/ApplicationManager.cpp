@@ -150,6 +150,7 @@ void ApplicationManager::handleTextEntered(sf::Event::TextEvent event) {
             setSelectedComponentValue(input);
             input = "";
             mode = SELECTED;
+            recalculate();
         }
     }
 }
@@ -197,16 +198,42 @@ void ApplicationManager::handleMousePressed(sf::Event::MouseButtonEvent event) {
 
 void ApplicationManager::handleResized(sf::Event::SizeEvent event) {
     // Set SFML window view
-    window.setView(sf::View(sf::FloatRect(0, 0, event.width, event.height)));
+    window.setView(sf::View(sf::FloatRect(0.0f, 0.0f, float(event.width), 
+                                          float(event.height))));
 
     // Recalculate Config values
     set(event.width, event.height);
     std::cout << "WIDTH: " << SCREEN_WIDTH << std::endl;
 
+    // Store components, along with the x and y index of their location
+    std::vector<std::tuple<int, int, int, int, Component*>> components;
+
+    for (Component* component : grid.getComponents()) {
+        int x1 = component->positive->x,
+            y1 = component->positive->y,
+            x2 = component->negative->x,
+            y2 = component->negative->y;
+
+        components.push_back(std::make_tuple(x1, y1, x2, y2, component));
+    }
+
     // Redraw grid
     grid = Grid(event.width, event.height);
-    placingComponent = nullptr;
-    selectedComponent = nullptr;
+
+    // Re-add existing components
+    for (auto t : components) {
+        GridSpot* pos,
+                * neg;
+        Component* comp = std::get<4>(t);
+
+        grid.getNearestSpot(sf::Vector2i{ std::get<0>(t), std::get<1>(t) }, pos);
+        grid.getNearestSpot(sf::Vector2i{ std::get<2>(t), std::get<3>(t) }, neg);
+
+        comp->positive = pos;
+        comp->negative = neg;
+
+        grid.addComponent(comp);
+    }
 }
 
 ///////////////////////
