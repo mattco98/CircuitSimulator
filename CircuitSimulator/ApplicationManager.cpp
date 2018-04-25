@@ -10,7 +10,6 @@
     Date Last Modified: 4/23/2018
 */
 
-#include <iostream> // TODO remove
 #include <iomanip>               // setprecision, fixed, left
 #include <cmath>                 // pow, sqrt
 #include <regex>                 // reg, smatch, regex_search, .size(), .str()
@@ -203,7 +202,6 @@ void ApplicationManager::handleResized(sf::Event::SizeEvent event) {
 
     // Recalculate Config values
     set(event.width, event.height);
-    std::cout << "WIDTH: " << SCREEN_WIDTH << std::endl;
 
     // Store components, along with the x and y index of their location
     std::vector<std::tuple<int, int, int, int, Component*>> components;
